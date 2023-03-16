@@ -1,13 +1,9 @@
 package edu.utn.ar;
-
-import com.opencsv.CSVReader;
-import com.opencsv.bean.CsvToBean;
-import com.opencsv.bean.IterableCSVToBeanBuilder;
-
+import edu.utn.ar.Equipo;
+import com.opencsv.bean.CsvToBeanBuilder;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,9 +38,10 @@ public class Main {
         static String lecturaDeDatos = icono.success + "Lectura de los datos!";
         public static String ArchivoRecibido = icono.success + "Archivo recibido: ";
     }
-    public static void main(String[] args) {
-        if (args.length != 0) {
-            if (args[0].charAt(0) == 'h' || args[0] == "help") {
+    // MI LECTOR PARA ARCHIVOS CSV
+    public static void main(String[] args) throws FileNotFoundException {
+        if (args.length == 1) {
+            if (args[0].charAt(0) == 'h' || args[0].equals("help")) {
                 helpBanner();
                 return;
             }
@@ -82,7 +79,6 @@ public class Main {
             System.out.println(textoEnConsola.archivoCorrectamenteIngresado + colores.ANSI_GREEN + rutaDeArchivoResultados.getFileName() + colores.ANSI_RESET);
             // AHORA PROCEDO CON ANALIZAR UNO DE LOS DOS ARCHIVOS!
             leerArchivoCSV(pronosticosArchivoCSV);
-            leerArchivoCSV(resultadosArchivoCSV);
         } else {
             System.out.println(icono.error + "Parametro(s) invalido(s).");
             System.out.println(icono.help + "Introduzca <help> o <h> como unico y primer parametro adicional para ver el mensaje de ayuda disponible.");
@@ -95,7 +91,15 @@ public class Main {
         System.out.println(textoEnConsola.lecturaDeDatos);
         System.out.println(textoEnConsola.ArchivoRecibido + colores.ANSI_GREEN + ArchivoCSV.toPath().getFileName() + colores.ANSI_RESET);
         List<Equipo> EquipoLocal;
+        try {
+            EquipoLocal = new CsvToBeanBuilder(new FileReader(ArchivoCSV)).withType(Equipo.class).build().parse();
+            for (Equipo equipos: EquipoLocal){
+                System.out.println(icono.info + equipos.getNombre() + ", puntos: " + equipos.getGoles());
+            }
 
+        } finally {
+            System.out.println(icono.info + textoEnConsola.lecturaDeDatos);
+        }
     }
     // BANNER DE AYUDA SI SE INTRODUCE EL COMANDO <help> Ó <h>
     private static void helpBanner() {

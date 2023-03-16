@@ -50,7 +50,21 @@ under the License.
     <orderEntry type="module-library"> 
       <library> 
         <CLASSES>
+          <root url="jar://C:/Users/Marco/.m2/repository/com/opencsv/opencsv/5.7.1/opencsv-5.7.1.jar!/"/>
+        </CLASSES>
+      </library> 
+    </orderEntry>  
+    <orderEntry type="module-library"> 
+      <library> 
+        <CLASSES>
           <root url="jar://C:/Users/Marco/.m2/repository/org/apache/commons/commons-lang3/3.12.0/commons-lang3-3.12.0.jar!/"/>
+        </CLASSES>
+      </library> 
+    </orderEntry>  
+    <orderEntry type="module-library"> 
+      <library> 
+        <CLASSES>
+          <root url="jar://C:/Users/Marco/.m2/repository/org/apache/commons/commons-text/1.10.0/commons-text-1.10.0.jar!/"/>
         </CLASSES>
       </library> 
     </orderEntry>  
@@ -81,21 +95,7 @@ under the License.
           <root url="jar://C:/Users/Marco/.m2/repository/org/apache/commons/commons-collections4/4.4/commons-collections4-4.4.jar!/"/>
         </CLASSES>
       </library> 
-    </orderEntry>  
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://C:/Users/Marco/.m2/repository/com/opencsv/opencsv/5.5.2/opencsv-5.5.2.jar!/"/>
-        </CLASSES>
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://C:/Users/Marco/.m2/repository/org/apache/commons/commons-text/1.9/commons-text-1.9.jar!/"/>
-        </CLASSES>
-      </library>
-    </orderEntry>
+    </orderEntry> 
   </component>  
   <component name="ModuleRootManager"/>  
   <!-- If it's a war project:
