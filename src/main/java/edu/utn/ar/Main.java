@@ -1,17 +1,24 @@
 package edu.utn.ar;
 import edu.utn.ar.Equipo;
-import com.opencsv.bean.CsvToBeanBuilder;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVParserBuilder;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVReaderBuilder;
+import com.opencsv.exceptions.CsvValidationException;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 public class Main {
     // CLASE IRRELEVANTE, PURAMENTE ESTETICA!
-    private class colores {
+    private static class colores {
         private static final String ANSI_RESET = "\u001B[0m";
         private static final String ANSI_RED = "\u001B[31m";
         private static final String ANSI_GREEN = "\u001B[32m";
@@ -22,7 +29,7 @@ public class Main {
         private static final String ANSI_WHITE = "\u001B[37m";
     }
     // CLASE IRRELEVANTE, PURAMENTE ESTETICA!
-    private class icono {
+    private static class icono {
         private static final String error = "\t[" + colores.ANSI_RED + "e" + colores.ANSI_RESET + "] ";
         private static final String info = "\t[" + colores.ANSI_BLUE + "i" + colores.ANSI_RESET + "] ";
         private static final String success = "\t[" + colores.ANSI_GREEN + "s" + colores.ANSI_RESET + "] ";
@@ -30,7 +37,7 @@ public class Main {
         private static final String warning = "\t[" + colores.ANSI_YELLOW + "w" + colores.ANSI_RESET + "] ";
     }
     // CLASE IRRELEVANTE, PURAMENTE ESTETICA!
-    private class textoEnConsola{
+    private static class textoEnConsola{
         static String rutaEspecificadaEsDirectorio = icono.error + "La ruta especificada es un directorio, no un archivo: ";
         static String archivoNoExistente = icono.error + "Archivo inexistente: ";
         static String archivoCorrectamenteIngresado = icono.success + "Archivo correctamente ingresado: ";
@@ -39,7 +46,7 @@ public class Main {
         public static String ArchivoRecibido = icono.success + "Archivo recibido: ";
     }
     // MI LECTOR PARA ARCHIVOS CSV
-    public static void main(String[] args) throws FileNotFoundException {
+    public static void main(String[] args) throws IOException, CsvValidationException {
         if (args.length == 1) {
             if (args[0].charAt(0) == 'h' || args[0].equals("help")) {
                 helpBanner();
@@ -78,27 +85,25 @@ public class Main {
             System.out.println(textoEnConsola.archivoCorrectamenteIngresado + colores.ANSI_GREEN + rutaDeArchivoPronosticos.getFileName() + colores.ANSI_RESET);
             System.out.println(textoEnConsola.archivoCorrectamenteIngresado + colores.ANSI_GREEN + rutaDeArchivoResultados.getFileName() + colores.ANSI_RESET);
             // AHORA PROCEDO CON ANALIZAR UNO DE LOS DOS ARCHIVOS!
-            leerArchivoCSV(pronosticosArchivoCSV);
+            leerArchivoCSV(resultadosArchivoCSV);
         } else {
             System.out.println(icono.error + "Parametro(s) invalido(s).");
             System.out.println(icono.help + "Introduzca <help> o <h> como unico y primer parametro adicional para ver el mensaje de ayuda disponible.");
-            return;
         }
         // FIN DEL METODO MAIN
     }
     // METODO USADO PARA LEER LOS ARCHIVOS!
-    private static void leerArchivoCSV(File ArchivoCSV) throws FileNotFoundException {
+    private static void leerArchivoCSV(File ArchivoCSV) throws IOException, CsvValidationException {
         System.out.println(textoEnConsola.lecturaDeDatos);
         System.out.println(textoEnConsola.ArchivoRecibido + colores.ANSI_GREEN + ArchivoCSV.toPath().getFileName() + colores.ANSI_RESET);
-        List<Equipo> EquipoLocal;
-        try {
-            EquipoLocal = new CsvToBeanBuilder(new FileReader(ArchivoCSV)).withType(Equipo.class).build().parse();
-            for (Equipo equipos: EquipoLocal){
-                System.out.println(icono.info + equipos.getNombre() + ", puntos: " + equipos.getGoles());
-            }
-
-        } finally {
-            System.out.println(icono.info + textoEnConsola.lecturaDeDatos);
+        CSVReader reader = new CSVReaderBuilder(new FileReader(ArchivoCSV)).withCSVParser(new CSVParserBuilder().withSeparator(';').build()).build();
+        List <Equipo> Equipos;
+        String[] line;
+        int lineNumber = 0;
+        while((line = reader.readNext()) != null){
+            System.out.print("\t[" + colores.ANSI_BLUE + "Linea " + lineNumber + colores.ANSI_RESET + "] Equipo local: " + line[0] + ", goles: " + line[1]);
+            System.out.print(" [" + colores.ANSI_BLUE + lineNumber + colores.ANSI_RESET + "] Equipo visitante: " + line[2] + ", goles: " + line[3] + "\n");
+            lineNumber++;
         }
     }
     // BANNER DE AYUDA SI SE INTRODUCE EL COMANDO <help> Ó <h>
