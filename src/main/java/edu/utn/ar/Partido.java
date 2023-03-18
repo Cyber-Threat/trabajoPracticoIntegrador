@@ -1,39 +1,22 @@
 package edu.utn.ar;
 
-import com.opencsv.bean.CsvBindByPosition;
-
-public class Equipo {
-    private static String nombre;
-    private static int goles;
-    private static String descripcion;
-    // CONSTRUCTOR
-    public Equipo(String nombre, int goles){
-        this.nombre = nombre;
-        this.goles = goles;
+public class Partido {
+    private Equipo equipoLocal;
+    private int golesDelLocal;
+    private int golesDelVisitante;
+    private Equipo equipoVisitante;
+    public Partido(Equipo equipoLocal, int golesDelLocal, int golesDelVisitante, Equipo equipoVisitante){
+        this.equipoLocal = equipoLocal;
+        this.golesDelLocal = golesDelLocal;
+        this.golesDelVisitante = golesDelVisitante;
+        this.equipoVisitante = equipoVisitante;
     }
-    // GETTERS AND SETTERS
-
-    public static String getNombre() {
-        return nombre;
-    }
-
-    public static void setNombre(String nombre) {
-        Equipo.nombre = nombre;
-    }
-
-    public static int getGoles() {
-        return goles;
-    }
-
-    public static void setGoles(int goles) {
-        Equipo.goles = goles;
-    }
-
-    public static String getDescripcion() {
-        return descripcion;
-    }
-
-    public static void setDescripcion(String descripcion) {
-        Equipo.descripcion = descripcion;
-    }
+    public Equipo getEquipoLocal() { return equipoLocal; }
+    public void setEquipoLocal(Equipo equipoLocal) { this.equipoLocal = equipoLocal; }
+    public int getGolesDelLocal() { return golesDelLocal; }
+    public void setGolesDelLocal(int golesDelLocal) { this.golesDelLocal = golesDelLocal; }
+    public int getGolesDelVisitante() { return golesDelVisitante; }
+    public void setGolesDelVisitante(int golesDelVisitante) { this.golesDelVisitante = golesDelVisitante; }
+    public Equipo getEquipoVisitante() { return equipoVisitante; }
+    public void setEquipoVisitante(Equipo equipoVisitante) { this.equipoVisitante = equipoVisitante; }
 }
