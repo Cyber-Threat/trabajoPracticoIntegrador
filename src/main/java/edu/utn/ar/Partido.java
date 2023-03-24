@@ -1,14 +1,17 @@
 package edu.utn.ar;
 
+import javax.xml.transform.Result;
+
 public class Partido {
     private Equipo equipoLocal;
     private int golesDelLocal;
     private int golesDelVisitante;
+    private ResultadoEnum resultado;
     private Equipo equipoVisitante;
-    public Partido(Equipo equipoLocal, int golesDelLocal, int golesDelVisitante, Equipo equipoVisitante){
+    public Partido(Equipo equipoLocal, Equipo equipoVisitante){
         this.equipoLocal = equipoLocal;
-        this.golesDelLocal = golesDelLocal;
-        this.golesDelVisitante = golesDelVisitante;
+        //this.golesDelLocal = (golesDelLocal == null) ? golesDelLocal : null;
+        //this.golesDelVisitante = (golesDelVisitante == null) ? golesDelVisitante : null;
         this.equipoVisitante = equipoVisitante;
     }
     public Equipo getEquipoLocal() { return equipoLocal; }
@@ -19,4 +22,10 @@ public class Partido {
     public void setGolesDelVisitante(int golesDelVisitante) { this.golesDelVisitante = golesDelVisitante; }
     public Equipo getEquipoVisitante() { return equipoVisitante; }
     public void setEquipoVisitante(Equipo equipoVisitante) { this.equipoVisitante = equipoVisitante; }
+    public ResultadoEnum getResultado() { return resultado; }
+    private ResultadoEnum setResultado() {
+        if (this.golesDelVisitante < this.golesDelLocal) return ResultadoEnum.GANADOR;
+        if (this.golesDelVisitante > this.golesDelLocal) return ResultadoEnum.PERDEDOR;
+        return ResultadoEnum.EMPATE;
+    }
 }

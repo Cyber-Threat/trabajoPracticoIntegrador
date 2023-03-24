@@ -1,2 +1,5 @@
-package edu.utn.ar;public class ResultadoEnum {
+package edu.utn.ar;
+
+public enum ResultadoEnum {
+    GANADOR, PERDEDOR, EMPATE;
 }
