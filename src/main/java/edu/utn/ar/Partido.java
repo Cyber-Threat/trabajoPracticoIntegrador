@@ -3,29 +3,62 @@ package edu.utn.ar;
 import javax.xml.transform.Result;
 
 public class Partido {
+    // ATRIBUTOS DEL OBJETO PARTIDO
+    private String identificacionUnivoca;
     private Equipo equipoLocal;
     private int golesDelLocal;
+    private ResultadoEnum resultadoEquipoLocal;
     private int golesDelVisitante;
-    private ResultadoEnum resultado;
+    private ResultadoEnum resultadoEquipoVisitante;
     private Equipo equipoVisitante;
-    public Partido(Equipo equipoLocal, Equipo equipoVisitante){
+    // CONSTRUCTORES
+    public Partido(){ }
+    public Partido (Equipo equipoLocal, Equipo equipoVisitante){
         this.equipoLocal = equipoLocal;
-        //this.golesDelLocal = (golesDelLocal == null) ? golesDelLocal : null;
-        //this.golesDelVisitante = (golesDelVisitante == null) ? golesDelVisitante : null;
         this.equipoVisitante = equipoVisitante;
     }
+    // ESTE CONSTRUCTOR LO USO A LA HORA DE LEER EL ARCHIVO RESULTADOS.CSV E INSTANCIAR LOS PARTIDOS!
+    public Partido(String id, Equipo equipoLocal, int gL, int gV, Equipo equipoVisitante){
+        this.identificacionUnivoca = id;
+        this.equipoLocal = equipoLocal;
+        this.resultadoEquipoLocal = this.setResultadoEquipoLocal(gL, gV);
+        this.golesDelVisitante = gL;
+        this.golesDelLocal = gV;
+        this.equipoVisitante = equipoVisitante;
+        this.resultadoEquipoVisitante = this.setResultadoEquipoVisitante(gL, gV);
+    }
+    // METODOS!
     public Equipo getEquipoLocal() { return equipoLocal; }
-    public void setEquipoLocal(Equipo equipoLocal) { this.equipoLocal = equipoLocal; }
     public int getGolesDelLocal() { return golesDelLocal; }
-    public void setGolesDelLocal(int golesDelLocal) { this.golesDelLocal = golesDelLocal; }
     public int getGolesDelVisitante() { return golesDelVisitante; }
-    public void setGolesDelVisitante(int golesDelVisitante) { this.golesDelVisitante = golesDelVisitante; }
     public Equipo getEquipoVisitante() { return equipoVisitante; }
-    public void setEquipoVisitante(Equipo equipoVisitante) { this.equipoVisitante = equipoVisitante; }
-    public ResultadoEnum getResultado() { return resultado; }
-    private ResultadoEnum setResultado() {
-        if (this.golesDelVisitante < this.golesDelLocal) return ResultadoEnum.GANADOR;
-        if (this.golesDelVisitante > this.golesDelLocal) return ResultadoEnum.PERDEDOR;
-        return ResultadoEnum.EMPATE;
+    public String getIdentificacionUnivoca() {
+        return identificacionUnivoca;
+    }
+    private ResultadoEnum setResultadoEquipoLocal(int gL, int gV){
+        ResultadoEnum resultadoBuffer = ResultadoEnum.EMPATE;
+        if (gL > gV){
+            resultadoBuffer = ResultadoEnum.GANADOR;
+        }
+        if (gL < gV){
+            resultadoBuffer = ResultadoEnum.PERDEDOR;
+        }
+        return resultadoBuffer;
+    }
+    public ResultadoEnum getResultadoEquipoLocal(){
+        return this.resultadoEquipoLocal;
+    }
+    private ResultadoEnum setResultadoEquipoVisitante(int gL, int gV){
+        ResultadoEnum resultadoBuffer = ResultadoEnum.EMPATE;
+        if (gL < gV){
+            resultadoBuffer = ResultadoEnum.GANADOR;
+        }
+        if (gL > gV){
+            resultadoBuffer = ResultadoEnum.PERDEDOR;
+        }
+        return resultadoBuffer;
+    }
+    public ResultadoEnum getResultadoEquipoVisitante(){
+        return this.resultadoEquipoVisitante;
     }
 }
