@@ -1,3 +1,15 @@
-// // EQUIPOS: ARGENTINA, MEXICO, HOLANDA, BOLIVIA, FRANCIA, BRASIL, ECUADOR, ALEMANIA, ESPAÑA, COLOMBIA
-"Maria Laura";Argentina;;;x;"Arabia Saudita"
+// EQUIPOS: ARGENTINA, MEXICO, HOLANDA, BOLIVIA, FRANCIA, BRASIL, ECUADOR, ALEMANIA, ESPAÑA, COLOMBIA
+"Maria Laura";Argentina;;;x;Arabia Saudita
 "Maria Laura";Polonia;;x;;Mexico
+Juan;Brasil;x;;;Alemania
+Juan;Bolivia;;;x;Francia
+Juan;Ecuador;x;;;Bolivia
+"Rigoberto Gonzalez";Bolivia;;x;;Francia
+"Rigoberto Gonzalez";Polonia;;x;;Mexico
+Marco;Argentina;;;x;"Arabia Saudita"
+Marco;Polonia;;x;;Mexico
+Marco;Brasil;x;;;Alemania
+Marco;Bolivia;;;x;Francia
+Marco;España;;;x;Holanda
+Marco;Ecuador;;x;;Polonia
+Marco;Ecuador;x;;;Bolivia

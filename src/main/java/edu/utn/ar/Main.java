@@ -6,7 +6,6 @@ import com.opencsv.bean.CsvToBeanBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.lang3.ObjectUtils;
 import org.w3c.dom.Text;
-
 import javax.xml.transform.Result;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,7 +15,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Main {
     public static void main(String[] args) throws Exception {
@@ -62,19 +63,16 @@ public class Main {
         if (equipos == null){
             System.out.println(TextFormat.icons.error +  "Ejecucion del programa interrumpida por el error mostrado en pantalla."); return;
         }
-        System.out.println(TextFormat.icons.info + "Tamaño de la lista de equipos: " + TextFormat.colors.green + equipos.size() + TextFormat.colors.reset);
         // AHORA PROCEDO CON ANALIZAR EL ARCHIVO DE RESULTADOS PARA CARGAR LA LISTA DE PARTIDOS JUGADOS REUTILIZANDO LOS OBJETOS DE TIPO EQUIPO INSTANCIADOS ANTERIORMENTE
         List<Partido> partidos = leerArchivoResultadosCSV(resultadosArchivoCSV, equipos);
         if (partidos == null){
             System.out.println(TextFormat.icons.error +  "Ejecucion del programa interrumpida por el error mostrado en pantalla."); return;
         }
-        System.out.println(TextFormat.icons.info + "Tamaño de la lista de partidos: " + TextFormat.colors.green + partidos.size() + TextFormat.colors.reset);
         // AHORA PROCEDO CON ANALIZAR UNO DE LOS DOS ARCHIVOS!
-        List<Pronostico> pronosticos  = leerArchivoPronosticosCSV(pronosticosArchivoCSV, partidos, equipos);
+        List<Pronostico> pronosticos = leerArchivoPronosticosCSV(pronosticosArchivoCSV, partidos, equipos);
         if (pronosticos == null){
             System.out.println(TextFormat.icons.error + "Ejecucion del programa interrumpida por el error mostrado en pantalla."); return;
         }
-        System.out.println(TextFormat.icons.info + "Tamaño de la lista de pronosticos: " + TextFormat.colors.green + pronosticos.size() + TextFormat.colors.reset);
         // AHORA PROCEDO A COMPARAR LAS DOS LISTAS PARA DETERMINAR EL GANADOR POR PUNTOS!
         List<Participante> participantes = compararListas(partidos, pronosticos);
         // FIN DEL METODO MAIN
@@ -83,7 +81,7 @@ public class Main {
     private static List<Equipo> instanciarEquipos(File resultadosArchivoCSV) throws Exception, CsvValidationException {
         List<Equipo> equipos = new ArrayList<>();
         int lineNumber = 0; int identificador = 0;
-        try (CSVReader reader = new CSVReaderBuilder(new FileReader(resultadosArchivoCSV)).withSkipLines(1).withCSVParser(new CSVParserBuilder().withSeparator(';').build()).build()){
+        try (CSVReader reader = new CSVReaderBuilder(new FileReader(resultadosArchivoCSV)).withSkipLines(1).withCSVParser(new CSVParserBuilder().withSeparator(';').build()).build()) {
             String[] line;
             while((line = reader.readNext()) != null){
                 // ME ASEGURO QUE NO ESTEN VACIOS LOS CAMPOS CORRESPONDIENTES A LOS NOMBRES DE LOS EQUIPOS
@@ -121,10 +119,8 @@ public class Main {
         }
     }
 
-    // METODO USADO PARA LEER EL ARCHIVO RESULTADOS.CSV!
+    // METODO USADO PARA CARGAR LA LISTA DE PARTIDOS!
     private static List<Partido> leerArchivoResultadosCSV(File ArchivoCSV, List<Equipo> listaEquipos) throws Exception, CsvValidationException {
-        System.out.println(TextFormat.icons.success + "Lectura de archivo en proceso.");
-        System.out.println(TextFormat.icons.info + "Archivo recibido: " + TextFormat.colors.green + ArchivoCSV.toPath().getFileName() + TextFormat.colors.reset);
         List<Partido> partidos = new ArrayList<>(); String[] line; int lineNumber = 0;
         try (CSVReader reader = new CSVReaderBuilder(new FileReader(ArchivoCSV)).withSkipLines(1).withCSVParser(new CSVParserBuilder().withSeparator(';').build()).build()) {
             while ((line = reader.readNext()) != null) {
@@ -136,10 +132,12 @@ public class Main {
                 if (line[1].equals("") || line[2].equals("")){ throw new NumberFormatException("El campo correspondiente a los goles de un equipo no contiene un valor para leer."); }
                 // ME ASEGURO QUE LOS CAMPOS CORRESPONDIENTES A LOS GOLES NO TENGAN VALORES NEGATIVOS!
                 if((Integer.parseInt(line[1]) < 0) || Integer.parseInt(line[2]) < 0){ throw new NumberFormatException("El campo correspondiente a los goles de un equipo contiene un valor negativo."); }
+                // ME TENGO QUE ASEGURAR QUE NO TENGA VALORES FLOTANTES
+                // LO TENGO QUE HACER!!!!
                 // TENGO QUE ASEGURARME DE NO INSTANCIAR UN EQUIPO REPETIDAS VECES!
                 String[] finalLine = line;
-                Equipo equipoLocalBuffer = listaEquipos.stream().filter(e -> e.getNombre().equals(finalLine[0])).findFirst().get();
-                Equipo equipoVisitanteBuffer = listaEquipos.stream().filter(e -> e.getNombre().equals(finalLine[3])).findFirst().get();
+                Equipo equipoLocalBuffer = listaEquipos.stream().filter(e -> e.getNombre().equals(finalLine[0])).findFirst().get(); // TENGO QUE MANEJAR UNA EXCEPCION SI NO SE ENCUENTRA EL EQUIPO!!!
+                Equipo equipoVisitanteBuffer = listaEquipos.stream().filter(e -> e.getNombre().equals(finalLine[3])).findFirst().get(); // TENGO QUE MANEJAR UNA EXCEPCION SI NO SE ENCUENTRA EL EQUIPO!!!
                 // CARGAR LA LISTA
                 partidos.add(lineNumber, new Partido(
                         Integer.toString(lineNumber), // IDENTIFICACION UNIVOCA DEL PARTIDO!
@@ -173,8 +171,6 @@ public class Main {
     }
     // METODO USADO PARA LEER EL ARCHIVO PRONOSTICOS.CSV
     private static List<Pronostico> leerArchivoPronosticosCSV(File ArchivoCSV, List<Partido> partidos, List<Equipo> equipos) throws Exception, CsvValidationException{
-        System.out.println(TextFormat.icons.success + "Lectura de archivo.");
-        System.out.println(TextFormat.icons.info + "Archivo recibido: " + TextFormat.colors.green + ArchivoCSV.toPath().getFileName() + TextFormat.colors.reset);
         List<Pronostico> pronosticos = new ArrayList<>(); String[] line; int lineNumber = 0;
         try (CSVReader reader = new CSVReaderBuilder(new FileReader(ArchivoCSV)).withSkipLines(1).withCSVParser(new CSVParserBuilder().withSeparator(';').build()).build()) {
             while ((line = reader.readNext()) != null) {
@@ -192,8 +188,11 @@ public class Main {
                 if (!enumeradorValido(line[2], line[3], line[4])) { throw new Exception("El enumerador usado en los campos donde se pronostica el resultado del partido, es invalido."); }
                 String nombreParticipanteBuffer = line[0];
                 String[] finalLine = line;
-                Equipo equipoLocalBuffer = equipos.stream().filter(e -> e.getNombre().equals(finalLine[1])).findFirst().get();
-                Equipo equipoVisitanteBuffer = equipos.stream().filter(e -> e.getNombre().equals(finalLine[5])).findFirst().get();
+                Equipo equipoLocalBuffer = equipos.stream().filter(e -> e.getNombre().equals(finalLine[1])).findFirst().orElse(null);
+                Equipo equipoVisitanteBuffer = equipos.stream().filter(e -> e.getNombre().equals(finalLine[5])).findFirst().orElse(null);
+                // SI EL EQUIPO ESPECIFICADO EN EL PRONOSTICO NO EXISTE ENTONCES LANZO UNA EXCEPCION!
+                if (equipoLocalBuffer == null) throw new Exception("El campo correspondiente al equipo local contiene informacion invalida.");
+                if (equipoVisitanteBuffer == null) throw new Exception("El campo correspondiente al equipo visitante contiene informacion invalida.");
                 ResultadoEnum resultadoEquipoLocalBuffer = null;
                 ResultadoEnum resultadoEquipoVisitanteBuffer = null;
                 if (line[2].equals("x") || line[2].equals("X")) {
@@ -208,7 +207,7 @@ public class Main {
                     resultadoEquipoLocalBuffer = ResultadoEnum.PERDEDOR;
                     resultadoEquipoVisitanteBuffer = ResultadoEnum.GANADOR;
                 }
-                Partido partidoBuffer = new Partido(equipoLocalBuffer, equipoVisitanteBuffer);
+                Partido partidoBuffer = partidos.stream().filter(p -> p.getEquipoLocal().getNombre().equals(finalLine[1]) && p.getEquipoVisitante().getNombre().equals(finalLine[5])).findFirst().get();
                 pronosticos.add(lineNumber, new Pronostico(nombreParticipanteBuffer, partidoBuffer, equipoLocalBuffer, equipoVisitanteBuffer, resultadoEquipoLocalBuffer, resultadoEquipoVisitanteBuffer));
                 lineNumber++;
             }
@@ -233,9 +232,9 @@ public class Main {
     }
     // METODO AUXILIAR PARA DETERMINAR SI EL ENUMERADOR USADO EN EL ARCHIVO DE PRONOSTICOS ES VALIDO, SOLO DEBE SER UNA X MAYUSCULA O MINUSCULA!
     private static boolean enumeradorValido(String s0, String s1, String s2) {
-        boolean enum0 = (s0.equals("x") || s0.equals("X"));
-        boolean enum1 = (s1.equals("x") || s1.equals("X"));
-        boolean enum2 = (s2.equals("x") || s2.equals("X"));
+        boolean enum0 = (s0.equals("x") || s0.equals("X")) && (s1.equals("")) && (s2.equals(""));
+        boolean enum1 = (s0.equals("")) && (s1.equals("x") || s1.equals("X")) && (s2.equals(""));
+        boolean enum2 = (s0.equals("")) && (s1.equals("")) && (s2.equals("x") || s2.equals("X"));
         if (enum0 || enum1 || enum2){ return true; }
         return false;
     }
@@ -248,32 +247,72 @@ public class Main {
         return false;
     }
     // METODO USADOS PARA COMPARAR LAS LISTAS OBTENIDAS A PARTIR DE LOS ARCHIVOS
-    private static List<Participante> compararListas(List<Partido> listaPartidos, List<Pronostico> listaPronosticos){
+    private static List<Participante> compararListas(List<Partido> listaPartidos, List<Pronostico> listaPronosticos) throws Exception {
         List<Participante> participantes = new ArrayList<>();
         int indicePronosticos = 0;
         int indiceParticipantes = 0;
-        int indicePartidos = 0;
         int identificador = 0; // EL INT QUE PIENSO USAR COMO IDENTIFICADOR UNIVOCO
         // ITERO A LO LARGO DE LA LISTA DE PRONOSTICOS PARA OBTENER LOS PARTICIPANTES
         do {
             String nombreBufferAux = listaPronosticos.get(indicePronosticos).getNombreParticipante();
-            // SI EL PARTICIPANTE NO EXISTE ENTONCES LO CREO EN LA LISTA
+            // SI EL PARTICIPANTE NO EXISTE ENTONCES LO CREO Y DESPUÉS LO CARGO EN LA LISTA
             if (participantes.stream().filter(p -> p.getNombre().equals(nombreBufferAux)).findFirst().orElse(null) == null){
                 participantes.add(indiceParticipantes, new Participante(Integer.toString(identificador), nombreBufferAux));
-                // ACTUALIZO LOS ITERADORES!
+                // ACTUALIZO LOS ITERADORES PARA LOS PARTICIPANTES Y EL ITERADOR QUE USO PARA IDENTIFICACION UNIVOCA!
                 indiceParticipantes++;
                 identificador++;
             }
+            // ACTUALIZO EL ITERADOR DE PRONOSTICOS!
             indicePronosticos++;
-        } while(indicePronosticos < listaPronosticos.size() - 1);
+        } while(indicePronosticos < listaPronosticos.size());
+        // AHORA LE CARGO LOS PUNTOS A LOS PARTICIPANTES!
+        participantes = cargarPuntosSegunLosPronosticosAcertados(listaPronosticos, listaPartidos, participantes);
+        Collections.sort(participantes, (p1, p2) -> Float.compare(p2.getPuntosAcumulados(), p1.getPuntosAcumulados()));
+        // IMPRIMO INFORMACION EN PANTALLA PARA PODER VISUALIZARLA!
         int iP = 0;
+        System.out.println("\n" + TextFormat.colors.cyan + "\t\t\t\t► ► TABLA DE PUNTUACIONES ◄ ◄" + TextFormat.colors.reset + "\n");
         do {
-            System.out.println(TextFormat.icons.info + "Participante instanciado: " + TextFormat.colors.green + participantes.get(iP).getNombre() + TextFormat.colors.reset
-                    + " Identificacion univoca: " + TextFormat.colors.green + participantes.get(iP).getIdentificacionUnivoca() + TextFormat.colors.reset);
+            System.out.println("\t\tPuesto (" + TextFormat.colors.cyan + (iP + 1) + TextFormat.colors.reset + "): " + TextFormat.colors.green + participantes.get(iP).getNombre() + TextFormat.colors.reset
+                    + " Identificacion univoca: " + TextFormat.colors.green + participantes.get(iP).getIdentificacionUnivoca() + TextFormat.colors.reset
+                    + " Puntos: (" + TextFormat.colors.purple + participantes.get(iP).getPuntosAcumulados() + TextFormat.colors.reset + ")");
             iP++;
         }while (iP < participantes.size());
         return participantes;
     }
+
+    private static List<Participante> cargarPuntosSegunLosPronosticosAcertados(List<Pronostico> listaPronosticos, List<Partido> listaPartidos, List<Participante> listaParticipantes) {
+        int indiceParticipantes = 0;
+        List<Participante> participantes = listaParticipantes;
+        List<Pronostico> subListaPronosticos = new ArrayList<>();
+        // PARA CADA PARTICIPANTE QUIERO SABER QUÉ PRONÓSTICOS ACERTARON
+        do {
+            String nombreBuffer = listaParticipantes.get(indiceParticipantes).getNombre(); // ME GUARDO EL NOMBRE DEL PARTICIPANTE DE ESTA ITERACION EN UN BUFFER
+            subListaPronosticos = listaPronosticos.stream().filter(l -> l.getNombreParticipante().equals(nombreBuffer)).collect(Collectors.toList()); // CREO UNA SUBLISTA DE PRONOSTICOS SOLO CORRESPONDIENTES A ESE PARTICIPANTE
+            int indicePartidos = 0;
+            for (int i = 0; i < subListaPronosticos.size(); i++) { // PARA CADA PRONOSTICO DE LA SUBLISTA QUIERO SABER CUALES SON ACERTADOS
+                String nombreLocalBuffer = subListaPronosticos.get(i).getEquipoLocal().getNombre();
+                String nombreVisitanteBuffer = subListaPronosticos.get(i).getEquipoVisitante().getNombre();
+                System.out.println(TextFormat.icons.info + "Pronosticos correspondientes al participante: " + TextFormat.colors.green + nombreBuffer + TextFormat.colors.reset
+                                    + " Identificacion univoca del partido referido: " + TextFormat.colors.blue + subListaPronosticos.get(i).getPartido().getIdentificacionUnivoca() + TextFormat.colors.reset
+                                    + TextFormat.colors.yellow + "\n\t . . . " + TextFormat.colors.reset + "Equipo local del pronostico: " + TextFormat.colors.green + subListaPronosticos.get(i).getEquipoLocal().getNombre() + TextFormat.colors.reset + ": "
+                                    + TextFormat.colors.cyan + subListaPronosticos.get(i).getPronosticoEquipoLocal() + TextFormat.colors.reset
+                                    + TextFormat.colors.yellow + "\n\t . . . " + TextFormat.colors.reset + "Equipo visitante del pronostico: " + TextFormat.colors.green + subListaPronosticos.get(i).getEquipoVisitante().getNombre() + TextFormat.colors.reset + ": "
+                                    + TextFormat.colors.cyan + subListaPronosticos.get(i).getPronosticoEquipoVisitante() + TextFormat.colors.reset);
+                Partido pBuffer = listaPartidos.stream().filter(p -> p.getEquipoLocal().getNombre().equals(nombreLocalBuffer) && p.getEquipoVisitante().getNombre().equals(nombreVisitanteBuffer)).findFirst().get();
+                System.out.println(TextFormat.colors.yellow + "\t . . . " + TextFormat.colors.reset
+                        + "Partido referido por el participante: <" + TextFormat.colors.blue + pBuffer.getIdentificacionUnivoca() +  TextFormat.colors.reset + "> "
+                        + TextFormat.colors.green + pBuffer.getEquipoLocal().getNombre() + TextFormat.colors.reset + " (" + TextFormat.colors.red + pBuffer.getResultadoEquipoLocal() + TextFormat.colors.reset+ ")"
+                        + " vs. " + TextFormat.colors.green + pBuffer.getEquipoVisitante().getNombre() + TextFormat.colors.reset + " (" + TextFormat.colors.red + pBuffer.getResultadoEquipoVisitante() + TextFormat.colors.reset+ ")");
+                if (pBuffer.getResultadoEquipoLocal() == subListaPronosticos.get(i).getPronosticoEquipoLocal() && pBuffer.getResultadoEquipoVisitante() == subListaPronosticos.get(i).getPronosticoEquipoVisitante()){
+                    participantes.get(indiceParticipantes).adicionarPuntos(1.0f);
+                    System.out.println(TextFormat.colors.yellow + "\t . . . " + TextFormat.colors.purple + "PUNTOS AÑADIDOS: " + Float.toString(1.0f) + TextFormat.colors.reset);
+                }
+            }
+            indiceParticipantes++;
+        } while(indiceParticipantes < listaParticipantes.size());
+        return participantes;
+    }
+
     // BANNER DE AYUDA SI SE INTRODUCE EL COMANDO <help> Ó <h>
     private static void helpBanner() {
         System.out.println(TextFormat.icons.help + "Mensaje de ayuda:");
