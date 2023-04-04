@@ -61,9 +61,9 @@ public class Main {
         // AHORA PROCEDO CON ANALIZAR EL ARCHIVO DE RESULTADOS.CSV SOLO PARA CARGAR LA LISTA DE EQUIPOS
         List<Equipo> equipos = instanciarEquipos(resultadosArchivoCSV);
         if (equipos == null){
-            System.out.println(TextFormat.icons.error +  "Ejecucion del programa interrumpida por el error mostrado en pantalla."); return;
+            System.out.println(TextFormat.icons.error + "Ejecucion del programa interrumpida por el error mostrado en pantalla."); return;
         }
-        // AHORA PROCEDO CON ANALIZAR EL ARCHIVO DE RESULTADOS PARA CARGAR LA LISTA DE PARTIDOS JUGADOS REUTILIZANDO LOS OBJETOS DE TIPO EQUIPO INSTANCIADOS ANTERIORMENTE
+        // AHORA PROCEDO CON ANALIZAR EL ARCHIVO DE RESULTADOS PARA CARGAR LA LISTA DE RONDAS CON LOS PARTIDOS JUGADOS REUTILIZANDO LOS OBJETOS DE TIPO EQUIPO INSTANCIADOS ANTERIORMENTE
         List<Partido> partidos = leerArchivoResultadosCSV(resultadosArchivoCSV, equipos);
         if (partidos == null){
             System.out.println(TextFormat.icons.error +  "Ejecucion del programa interrumpida por el error mostrado en pantalla."); return;
@@ -132,19 +132,17 @@ public class Main {
                 if (line[1].equals("") || line[2].equals("")){ throw new NumberFormatException("El campo correspondiente a los goles de un equipo no contiene un valor para leer."); }
                 // ME ASEGURO QUE LOS CAMPOS CORRESPONDIENTES A LOS GOLES NO TENGAN VALORES NEGATIVOS!
                 if((Integer.parseInt(line[1]) < 0) || Integer.parseInt(line[2]) < 0){ throw new NumberFormatException("El campo correspondiente a los goles de un equipo contiene un valor negativo."); }
-                // ME TENGO QUE ASEGURAR QUE NO TENGA VALORES FLOTANTES
-                // LO TENGO QUE HACER!!!!
                 // TENGO QUE ASEGURARME DE NO INSTANCIAR UN EQUIPO REPETIDAS VECES!
                 String[] finalLine = line;
                 Equipo equipoLocalBuffer = listaEquipos.stream().filter(e -> e.getNombre().equals(finalLine[0])).findFirst().get(); // TENGO QUE MANEJAR UNA EXCEPCION SI NO SE ENCUENTRA EL EQUIPO!!!
                 Equipo equipoVisitanteBuffer = listaEquipos.stream().filter(e -> e.getNombre().equals(finalLine[3])).findFirst().get(); // TENGO QUE MANEJAR UNA EXCEPCION SI NO SE ENCUENTRA EL EQUIPO!!!
                 // CARGAR LA LISTA
                 partidos.add(lineNumber, new Partido(
-                        Integer.toString(lineNumber), // IDENTIFICACION UNIVOCA DEL PARTIDO!
-                        equipoLocalBuffer,            // EQUIPO LOCAL!
-                        Integer.parseInt(line[1]),    // GOLES DEL EQUIPO LOCAL!
-                        Integer.parseInt(line[2]),    // GOLES DEL EQUIPO VISITANTE!
-                        equipoVisitanteBuffer         // EQUIPO VISITANTE!
+                    Integer.toString(lineNumber), // IDENTIFICACION UNIVOCA DEL PARTIDO!
+                    equipoLocalBuffer,            // EQUIPO LOCAL!
+                    Integer.parseInt(line[1]),    // GOLES DEL EQUIPO LOCAL!
+                    Integer.parseInt(line[2]),    // GOLES DEL EQUIPO VISITANTE!
+                    equipoVisitanteBuffer         // EQUIPO VISITANTE!
                 ));
                 // CAMBIO DE INDICE!
                 lineNumber++;
@@ -157,15 +155,17 @@ public class Main {
             partidos = null;
         } finally {
             // SENCILLAMENTE IMPRIMO LOS ELEMENTOS EN PANTALLA PARA VER QUE TODO ESTA EN ORDEN!
-            int iP = 0;
-            do {
-                System.out.println(TextFormat.icons.info + "Identificacion univoca del partido: " + TextFormat.colors.green + partidos.get(iP).getIdentificacionUnivoca() + TextFormat.colors.reset
-                        + " Equipo local: " + TextFormat.colors.green + partidos.get(iP).getEquipoLocal().getNombre() + TextFormat.colors.reset
-                        + "(" + partidos.get(iP).getEquipoLocal().getIdentificacionUnivoca() + ")" + " Resultado del partido para el equipo local: " + TextFormat.colors.green + partidos.get(iP).getResultadoEquipoLocal() + TextFormat.colors.reset
-                        + " Equipo visitante: " + TextFormat.colors.green + partidos.get(iP).getEquipoVisitante().getNombre() + TextFormat.colors.reset
-                        + "(" + partidos.get(iP).getEquipoVisitante().getIdentificacionUnivoca() + ")" + " Resultado del partido para el equipo visitante: " + TextFormat.colors.green + partidos.get(iP).getResultadoEquipoVisitante() + TextFormat.colors.reset);
-                iP++;
-            } while(iP < partidos.size());
+            if (partidos != null) {
+                int iP = 0;
+                do {
+                    System.out.println(TextFormat.icons.info + "Identificacion univoca del partido: " + TextFormat.colors.green + partidos.get(iP).getIdentificacionUnivoca() + TextFormat.colors.reset
+                            + " Equipo local: " + TextFormat.colors.green + partidos.get(iP).getEquipoLocal().getNombre() + TextFormat.colors.reset
+                            + "(" + partidos.get(iP).getEquipoLocal().getIdentificacionUnivoca() + ")" + " Resultado del partido para el equipo local: " + TextFormat.colors.green + partidos.get(iP).getResultadoEquipoLocal() + TextFormat.colors.reset
+                            + " Equipo visitante: " + TextFormat.colors.green + partidos.get(iP).getEquipoVisitante().getNombre() + TextFormat.colors.reset
+                            + "(" + partidos.get(iP).getEquipoVisitante().getIdentificacionUnivoca() + ")" + " Resultado del partido para el equipo visitante: " + TextFormat.colors.green + partidos.get(iP).getResultadoEquipoVisitante() + TextFormat.colors.reset);
+                    iP++;
+                } while (iP < partidos.size());
+            }
             return partidos;
         }
     }
@@ -174,6 +174,7 @@ public class Main {
         List<Pronostico> pronosticos = new ArrayList<>(); String[] line; int lineNumber = 0;
         try (CSVReader reader = new CSVReaderBuilder(new FileReader(ArchivoCSV)).withSkipLines(1).withCSVParser(new CSVParserBuilder().withSeparator(';').build()).build()) {
             while ((line = reader.readNext()) != null) {
+                String[] finalLine = line;
                 // ME ASEGURO QUE HAYA LA CANTIDAD CORRECTA DE CAMPOS
                 if (line.length != 6){ throw new Exception("La cantidad de campos introducidos es incorrecta."); }
                 // ME ASEGURO QUE EXISTA EL NOMBRE DEL PARTICIPANTE
@@ -182,12 +183,15 @@ public class Main {
                 if (line[1].equals("") || line[5].equals("")){ throw new Exception("El campo correspondiente a uno de los equipos esta vacio."); }
                 // ME ASEGURO QUE EXISTA EL VALOR QUE DICTA EL RESULTADO DEL PARTIDO
                 if (line[2].equals("") && line[3].equals("") && line[4].equals("")){ throw new Exception("Los campos que pronostican el resultado del partido están vacios."); }
-                // ME ASEGURO QUE HAYA UN SOLO CAMPO PRONOSTICANDO EL RESULTADO DEL PARTIDO
-                if (!soloHayUnEnumerador(line[2], line[3], line[4])){ throw new Exception("Los campos donde se coloca el resultado pronosticado del partido tienen información invalida."); }
                 // ENUMERADOR VALIDO (SOLO DEBE SER UNA "X" MAYUSCULA O MINUSCULA!
                 if (!enumeradorValido(line[2], line[3], line[4])) { throw new Exception("El enumerador usado en los campos donde se pronostica el resultado del partido, es invalido."); }
+                // ME ASEGURO EN ULTIMA INSTANCIA QUE EL PRONOSTICO QUE ESTOY POR LEER NO EXISTA!
+                if (pronosticos.stream().anyMatch(p -> p.getNombreParticipante().equals(finalLine[0])
+                        && p.getPartido().getEquipoLocal().getNombre().equals(finalLine[1])
+                        && p.getPartido().getEquipoVisitante().getNombre().equals(finalLine[5]))) { throw new Exception("El pronostico " + TextFormat.colors.red + finalLine[1] + TextFormat.colors.reset
+                                                                                                                        + " vs. " + TextFormat.colors.red + finalLine[5] + TextFormat.colors.reset
+                                                                                                                        + " hecho por " + TextFormat.colors.red + finalLine[0] + TextFormat.colors.reset + " ya existe."); }
                 String nombreParticipanteBuffer = line[0];
-                String[] finalLine = line;
                 Equipo equipoLocalBuffer = equipos.stream().filter(e -> e.getNombre().equals(finalLine[1])).findFirst().orElse(null);
                 Equipo equipoVisitanteBuffer = equipos.stream().filter(e -> e.getNombre().equals(finalLine[5])).findFirst().orElse(null);
                 // SI EL EQUIPO ESPECIFICADO EN EL PRONOSTICO NO EXISTE ENTONCES LANZO UNA EXCEPCION!
@@ -218,15 +222,15 @@ public class Main {
             System.out.println(TextFormat.icons.error + e.getMessage());
             pronosticos = null;
         } finally {
-            int iP = 0;
-            do {
-                System.out.println(TextFormat.icons.info + "Participante del pronostico: " + TextFormat.colors.green + pronosticos.get(iP).getNombreParticipante() + TextFormat.colors.reset
-                        + " Partido: " + TextFormat.colors.green + pronosticos.get(iP).getPartido().getEquipoLocal().getNombre() + TextFormat.colors.reset
-                        + " vs. " + TextFormat.colors.green + pronosticos.get(iP).getPartido().getEquipoVisitante().getNombre() + TextFormat.colors.reset
-                        + " Resultado pronosticado para equipo local: " + TextFormat.colors.green + pronosticos.get(iP).getPronosticoEquipoLocal() + TextFormat.colors.reset
-                        + " Resultado pronosticado para equipo visitante: " + TextFormat.colors.green + pronosticos.get(iP).getPronosticoEquipoVisitante() + TextFormat.colors.reset);
-                iP++;
-            } while (iP < pronosticos.size());
+        //  int iP = 0;
+        //  do {
+        //      System.out.println(TextFormat.icons.info + "Participante del pronostico: " + TextFormat.colors.green + pronosticos.get(iP).getNombreParticipante() + TextFormat.colors.reset
+        //              + " Partido: " + TextFormat.colors.green + pronosticos.get(iP).getPartido().getEquipoLocal().getNombre() + TextFormat.colors.reset
+        //              + " vs. " + TextFormat.colors.green + pronosticos.get(iP).getPartido().getEquipoVisitante().getNombre() + TextFormat.colors.reset
+        //              + " Resultado pronosticado para equipo local: " + TextFormat.colors.green + pronosticos.get(iP).getPronosticoEquipoLocal() + TextFormat.colors.reset
+        //              + " Resultado pronosticado para equipo visitante: " + TextFormat.colors.green + pronosticos.get(iP).getPronosticoEquipoVisitante() + TextFormat.colors.reset);
+        //      iP++;
+        //  } while (iP < pronosticos.size());
             return pronosticos;
         }
     }
@@ -235,17 +239,12 @@ public class Main {
         boolean enum0 = (s0.equals("x") || s0.equals("X")) && (s1.equals("")) && (s2.equals(""));
         boolean enum1 = (s0.equals("")) && (s1.equals("x") || s1.equals("X")) && (s2.equals(""));
         boolean enum2 = (s0.equals("")) && (s1.equals("")) && (s2.equals("x") || s2.equals("X"));
-        if (enum0 || enum1 || enum2){ return true; }
+        if (enum0 && !enum1 && !enum2){ return true; }
+        if (!enum0 && enum1 && !enum2){ return true; }
+        if (!enum0 && !enum1 && enum2){ return true; }
         return false;
     }
     // METODO AUXILIAR SOLO PARA DETERMINAR SI LOS CAMPOS CORRESPONDIENTES A LOS RESULTADOS PRONOSTICADOS TIENEN UN SOLO INDICADOR ESCRITO POR LINEA!
-    private static boolean soloHayUnEnumerador(String s0, String s1, String s2) {
-        boolean enum1 = (!s0.equals("") && s1.equals("") && s2.equals(""));
-        boolean enum2 = (s0.equals("") && !s1.equals("") && s2.equals(""));
-        boolean enum3 = (s0.equals("") && s1.equals("") && !s2.equals(""));
-        if (enum1 || enum2 || enum3){ return true; }
-        return false;
-    }
     // METODO USADOS PARA COMPARAR LAS LISTAS OBTENIDAS A PARTIR DE LOS ARCHIVOS
     private static List<Participante> compararListas(List<Partido> listaPartidos, List<Pronostico> listaPronosticos) throws Exception {
         List<Participante> participantes = new ArrayList<>();
@@ -270,13 +269,16 @@ public class Main {
         Collections.sort(participantes, (p1, p2) -> Float.compare(p2.getPuntosAcumulados(), p1.getPuntosAcumulados()));
         // IMPRIMO INFORMACION EN PANTALLA PARA PODER VISUALIZARLA!
         int iP = 0;
-        System.out.println("\n" + TextFormat.colors.cyan + "\t\t\t\t► ► TABLA DE PUNTUACIONES ◄ ◄" + TextFormat.colors.reset + "\n");
+        System.out.println(TextFormat.colors.cyan + "┌" + String.format("%1$-128s",  " ").replace(' ', '─') + "┐");
+        System.out.println(TextFormat.colors.cyan + "│" + String.format("%1$-114s", "\t\t\t\t\t► ► ► TABLA DE PUNTUACIONES ◄ ◄ ◄") + "│" + TextFormat.colors.reset);
         do {
-            System.out.println("\t\tPuesto (" + TextFormat.colors.cyan + (iP + 1) + TextFormat.colors.reset + "): " + TextFormat.colors.green + participantes.get(iP).getNombre() + TextFormat.colors.reset
-                    + " Identificacion univoca: " + TextFormat.colors.green + participantes.get(iP).getIdentificacionUnivoca() + TextFormat.colors.reset
-                    + " Puntos: (" + TextFormat.colors.purple + participantes.get(iP).getPuntosAcumulados() + TextFormat.colors.reset + ")");
+            System.out.println(TextFormat.colors.cyan + "│"  + TextFormat.colors.reset + "\t\tPuesto (" + TextFormat.colors.cyan + (iP + 1) + TextFormat.colors.reset + "): "
+                    + TextFormat.colors.green + String.format("%1$-48s", participantes.get(iP).getNombre()) + TextFormat.colors.reset
+                    + String.format("%-79s", " Identificacion univoca: " + TextFormat.colors.blue + participantes.get(iP).getIdentificacionUnivoca() + TextFormat.colors.reset
+                    + " Puntos: (" + TextFormat.colors.purple + participantes.get(iP).getPuntosAcumulados() + TextFormat.colors.reset + ")") + TextFormat.colors.cyan + "│");
             iP++;
         }while (iP < participantes.size());
+        System.out.println(TextFormat.colors.cyan + "└" + String.format("%1$-128s", " ").replace(' ', '─') + "┘" + TextFormat.colors.reset);
         return participantes;
     }
 
@@ -284,6 +286,7 @@ public class Main {
         int indiceParticipantes = 0;
         List<Participante> participantes = listaParticipantes;
         List<Pronostico> subListaPronosticos = new ArrayList<>();
+        String formatSpecifier = "%1$-64s";
         // PARA CADA PARTICIPANTE QUIERO SABER QUÉ PRONÓSTICOS ACERTARON
         do {
             String nombreBuffer = listaParticipantes.get(indiceParticipantes).getNombre(); // ME GUARDO EL NOMBRE DEL PARTICIPANTE DE ESTA ITERACION EN UN BUFFER
@@ -292,24 +295,34 @@ public class Main {
             for (int i = 0; i < subListaPronosticos.size(); i++) { // PARA CADA PRONOSTICO DE LA SUBLISTA QUIERO SABER CUALES SON ACERTADOS
                 String nombreLocalBuffer = subListaPronosticos.get(i).getEquipoLocal().getNombre();
                 String nombreVisitanteBuffer = subListaPronosticos.get(i).getEquipoVisitante().getNombre();
-                System.out.println(TextFormat.icons.info + "Pronosticos correspondientes al participante: " + TextFormat.colors.green + nombreBuffer + TextFormat.colors.reset
-                                    + " Identificacion univoca del partido referido: " + TextFormat.colors.blue + subListaPronosticos.get(i).getPartido().getIdentificacionUnivoca() + TextFormat.colors.reset
-                                    + TextFormat.colors.yellow + "\n\t . . . " + TextFormat.colors.reset + "Equipo local del pronostico: " + TextFormat.colors.green + subListaPronosticos.get(i).getEquipoLocal().getNombre() + TextFormat.colors.reset + ": "
-                                    + TextFormat.colors.cyan + subListaPronosticos.get(i).getPronosticoEquipoLocal() + TextFormat.colors.reset
-                                    + TextFormat.colors.yellow + "\n\t . . . " + TextFormat.colors.reset + "Equipo visitante del pronostico: " + TextFormat.colors.green + subListaPronosticos.get(i).getEquipoVisitante().getNombre() + TextFormat.colors.reset + ": "
-                                    + TextFormat.colors.cyan + subListaPronosticos.get(i).getPronosticoEquipoVisitante() + TextFormat.colors.reset);
+                // BUSCO EL PARTIDO AL QUE SE REFIERE EL PRONOSTICO PARA LA POSTERIOR EVALUACION!
                 Partido pBuffer = listaPartidos.stream().filter(p -> p.getEquipoLocal().getNombre().equals(nombreLocalBuffer) && p.getEquipoVisitante().getNombre().equals(nombreVisitanteBuffer)).findFirst().get();
-                System.out.println(TextFormat.colors.yellow + "\t . . . " + TextFormat.colors.reset
-                        + "Partido referido por el participante: <" + TextFormat.colors.blue + pBuffer.getIdentificacionUnivoca() +  TextFormat.colors.reset + "> "
-                        + TextFormat.colors.green + pBuffer.getEquipoLocal().getNombre() + TextFormat.colors.reset + " (" + TextFormat.colors.red + pBuffer.getResultadoEquipoLocal() + TextFormat.colors.reset+ ")"
-                        + " vs. " + TextFormat.colors.green + pBuffer.getEquipoVisitante().getNombre() + TextFormat.colors.reset + " (" + TextFormat.colors.red + pBuffer.getResultadoEquipoVisitante() + TextFormat.colors.reset+ ")");
+                // EFECTIVAMENTE EVALUO SI EL PRONOSTICO ES ACERTADO, DE SER EL CASO SUMO PUNTOS AL PARTICIPANTE!!
                 if (pBuffer.getResultadoEquipoLocal() == subListaPronosticos.get(i).getPronosticoEquipoLocal() && pBuffer.getResultadoEquipoVisitante() == subListaPronosticos.get(i).getPronosticoEquipoVisitante()){
                     participantes.get(indiceParticipantes).adicionarPuntos(1.0f);
-                    System.out.println(TextFormat.colors.yellow + "\t . . . " + TextFormat.colors.purple + "PUNTOS AÑADIDOS: " + Float.toString(1.0f) + TextFormat.colors.reset);
                 }
+                System.out.println(TextFormat.colors.white + String.format("%1$-128s", " ").replace(' ', '─'));
+                System.out.println(TextFormat.icons.info + String.format(formatSpecifier, "Pronosticos correspondientes al participante:") + TextFormat.colors.green + nombreBuffer + TextFormat.colors.reset
+                                    + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset + String.format(formatSpecifier, "Identificacion univoca del partido referido:")
+                                    + TextFormat.colors.blue + subListaPronosticos.get(i).getPartido().getIdentificacionUnivoca() + TextFormat.colors.reset
+                                    + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset + String.format(formatSpecifier, "Equipo local del pronostico:")
+                                    + TextFormat.colors.green + subListaPronosticos.get(i).getEquipoLocal().getNombre() + TextFormat.colors.reset + ": "
+                                    + TextFormat.colors.cyan + subListaPronosticos.get(i).getPronosticoEquipoLocal() + TextFormat.colors.reset
+                                    + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset + String.format(formatSpecifier, "Equipo visitante del pronostico:") + TextFormat.colors.green
+                                    + subListaPronosticos.get(i).getEquipoVisitante().getNombre() + TextFormat.colors.reset + ": "
+                                    + TextFormat.colors.cyan + subListaPronosticos.get(i).getPronosticoEquipoVisitante() + TextFormat.colors.reset
+                                    + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset
+                                    + String.format(formatSpecifier, "Resultados del partido referido por el participante:")
+                                    + TextFormat.colors.green + pBuffer.getEquipoLocal().getNombre() + TextFormat.colors.reset
+                                    + " (" + TextFormat.colors.red + pBuffer.getResultadoEquipoLocal() + TextFormat.colors.reset+ ")"
+                                    + " vs. " + TextFormat.colors.green + pBuffer.getEquipoVisitante().getNombre() + TextFormat.colors.reset
+                                    + " (" + TextFormat.colors.red + pBuffer.getResultadoEquipoVisitante() + TextFormat.colors.reset+ ")"
+                                    + TextFormat.colors.blue + "\n\t └─ " + TextFormat.colors.purple + String.format(formatSpecifier, "Puntos acumulados: ")
+                                    + participantes.get(indiceParticipantes).getPuntosAcumulados() + TextFormat.colors.reset);
             }
             indiceParticipantes++;
         } while(indiceParticipantes < listaParticipantes.size());
+        System.out.println(TextFormat.colors.white + String.format("%1$-128s", " ").replace(' ', '─'));
         return participantes;
     }
 
