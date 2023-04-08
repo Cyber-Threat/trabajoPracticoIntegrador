@@ -32,15 +32,21 @@ public abstract class TextFormat {
         public static final String warning = "\t[" + colors.yellow + "w" + colors.reset + "] ";
     }
     public static void imprimirPartidosInstanciados(List<Partido> partidos) {
+        String formatSpecifier = "%1$-64s";
         if (partidos != null) {
             int iP = 0;
             do {
-                System.out.println(TextFormat.icons.info + "Identificacion univoca del partido: " + TextFormat.colors.blue + partidos.get(iP).getIdentificacionUnivoca() + TextFormat.colors.reset
-                        + " Ronda: " + TextFormat.colors.blue + partidos.get(iP).getRondaCorrespondiente() + TextFormat.colors.reset
-                        + " Equipo local: " + TextFormat.colors.green + partidos.get(iP).getEquipoLocal().getNombre() + TextFormat.colors.reset
-                        + "(" + partidos.get(iP).getEquipoLocal().getIdentificacionUnivoca() + ")" + " Resultado del partido para el equipo local: " + TextFormat.colors.green + partidos.get(iP).getResultadoEquipoLocal() + TextFormat.colors.reset
-                        + " Equipo visitante: " + TextFormat.colors.green + partidos.get(iP).getEquipoVisitante().getNombre() + TextFormat.colors.reset
-                        + "(" + partidos.get(iP).getEquipoVisitante().getIdentificacionUnivoca() + ")" + " Resultado del partido para el equipo visitante: " + TextFormat.colors.green + partidos.get(iP).getResultadoEquipoVisitante() + TextFormat.colors.reset);
+                System.out.println(TextFormat.colors.cyan + String.format("%1$-128s", " ").replace(' ', '─') + TextFormat.colors.reset);
+                System.out.println(TextFormat.icons.info + "Informacion del partido instanciado!"
+                                 + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset +  String.format(formatSpecifier, "Identificacion univoca del partido: ")
+                                 + TextFormat.colors.blue + partidos.get(iP).getIdentificacionUnivoca() + TextFormat.colors.reset
+                                 + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset +  String.format(formatSpecifier, "Ronda: ") + TextFormat.colors.blue + partidos.get(iP).getRondaCorrespondiente() + TextFormat.colors.reset
+                                 + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset +  String.format(formatSpecifier, "Equipo local: ") + TextFormat.colors.green + partidos.get(iP).getEquipoLocal().getNombre() + TextFormat.colors.reset
+                                 + "(" + partidos.get(iP).getEquipoLocal().getIdentificacionUnivoca() + ")"
+                                 + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset +  String.format(formatSpecifier, "Resultado del partido para el equipo local: ") + TextFormat.colors.green + partidos.get(iP).getResultadoEquipoLocal() + TextFormat.colors.reset
+                                 + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset +  String.format(formatSpecifier, "Equipo visitante: ") + TextFormat.colors.green + partidos.get(iP).getEquipoVisitante().getNombre() + TextFormat.colors.reset
+                                 + "(" + partidos.get(iP).getEquipoVisitante().getIdentificacionUnivoca() + ")"
+                                 + TextFormat.colors.blue + "\n\t └─ " + TextFormat.colors.reset +  String.format(formatSpecifier, "Resultado del partido para el equipo visitante: ") + TextFormat.colors.green + partidos.get(iP).getResultadoEquipoVisitante() + TextFormat.colors.reset);
                 iP++;
             } while (iP < partidos.size());
         }
@@ -63,11 +69,11 @@ public abstract class TextFormat {
                 + " (" + TextFormat.colors.red + pBuffer.getResultadoEquipoLocal() + TextFormat.colors.reset+ ")"
                 + " vs. " + TextFormat.colors.green + pBuffer.getEquipoVisitante().getNombre() + TextFormat.colors.reset
                 + " (" + TextFormat.colors.red + pBuffer.getResultadoEquipoVisitante() + TextFormat.colors.reset+ ")"
-                + TextFormat.colors.blue + "\n\t └─ " + TextFormat.colors.purple + String.format(formatSpecifier, "Puntos acumulados: ")
+                + TextFormat.colors.blue + "\n\t └─ " + TextFormat.colors.purple + String.format(formatSpecifier, "Puntos acumulados hasta el momento: ")
                 + participantes.get(indiceParticipantes).getPuntosAcumulados() + TextFormat.colors.reset);
     }
     public static void helpBanner() {
-        System.out.println(icons.help + "Mensaje de ayuda:");
+        System.out.println(icons.help + effects.bold + "Mensaje de ayuda:");
         System.out.println(colors.green + "\t ├─ " + colors.reset + "El programa esta pensado para leer dos archivos llamados \"pronosticos.csv\" y \"resultados.csv\".");
         System.out.println(colors.green + "\t ├─ " + colors.reset + "Dichos archivos tienen que ser especificados como parametros");
         System.out.println(colors.green + "\t ├─ " + colors.reset + "al momento de ejecutar el programa desde la consola de comandos.\"");
@@ -96,8 +102,8 @@ public abstract class TextFormat {
     public static void imprimirTablaDePuntuaciones(List<Participante> participantes) {
         // IMPRIMO INFORMACION EN PANTALLA PARA PODER VISUALIZARLA!
         int iP = 0;
+        System.out.println(TextFormat.colors.cyan + effects.bold + String.format("%1$-114s", "\t\t\t\t\t► ► ► TABLA DE PUNTUACIONES ◄ ◄ ◄") + TextFormat.colors.reset);
         System.out.println(TextFormat.colors.cyan + "┌" + String.format("%1$-128s", " ").replace(' ', '─') + "┐");
-        System.out.println(TextFormat.colors.cyan + "│" + String.format("%1$-114s", "\t\t\t\t\t► ► ► TABLA DE PUNTUACIONES ◄ ◄ ◄") + "│" + TextFormat.colors.reset);
         do {
             System.out.println(TextFormat.colors.cyan + "│" + TextFormat.colors.reset + "\t\tPuesto (" + TextFormat.colors.cyan + (iP + 1) + TextFormat.colors.reset + "): "
                     + TextFormat.colors.green + String.format("%1$-48s", participantes.get(iP).getNombre()) + TextFormat.colors.reset

@@ -140,6 +140,7 @@ public class Main {
             partidos = null;
         } finally {
             // ALGORITMO PARA CARGAR LOS PARTIDOS AL OBJETO RONDAS EN EL ORDEN EN EL CUAL SE INSTANCIARON! ESTOY ASUMIENDO QUE DESDE LA BASE DE DATOS ME LLEGAN ORDENADOS!
+            System.out.println(TextFormat.colors.white + TextFormat.effects.bold + String.format("%1$-114s", "\n\t\t\t\t\t► ► ► PARTIDOS INSTANCIADOS! ◄ ◄ ◄") + TextFormat.colors.reset);
             for (int i = 0; i < rondaBuffer.size(); i++){
                 final int aux = i; // EL INT AUX TIENE QUE SER FINAL PARA PODER SER PASADO A LA EXPRESION LAMBDA CON LA CUAL FILTRO LOS PARTIDOS QUE COINCIDEN CON EL ITERADOR "i"
                 rondas.add(new Ronda(partidos.stream().filter(p -> p.getRondaCorrespondiente() == rondaBuffer.get(aux)).collect(Collectors.toList())));
@@ -201,6 +202,7 @@ public class Main {
         int indiceParticipantes = 0;
         int identificador = 0; // EL INT QUE PIENSO USAR COMO IDENTIFICADOR UNIVOCO
         // ITERO A LO LARGO DE LA LISTA DE PRONOSTICOS PARA OBTENER LOS PARTICIPANTES
+
         do {
             String nombreBufferAux = listaPronosticos.get(indicePronosticos).getNombreParticipante();
             // SI EL PARTICIPANTE NO EXISTE ENTONCES LO CREO Y DESPUÉS LO CARGO EN LA LISTA
@@ -226,6 +228,7 @@ public class Main {
         List<Participante> participantes = listaParticipantes;
         List<Pronostico> subListaPronosticos = new ArrayList<>();
         // PARA CADA PARTICIPANTE QUIERO SABER QUÉ PRONÓSTICOS ACERTARON
+        System.out.println(TextFormat.colors.white + TextFormat.effects.bold + String.format("%1$-114s", "\n\t\t\t\t\t► ► ► PRONOSTICOS DE LOS PARTICIPANTES! ◄ ◄ ◄") + TextFormat.colors.reset);
         do {
             String nombreBuffer = listaParticipantes.get(indiceParticipantes).getNombre(); // ME GUARDO EL NOMBRE DEL PARTICIPANTE DE ESTA ITERACION EN UN BUFFER
             subListaPronosticos = listaPronosticos.stream().filter(l -> l.getNombreParticipante().equals(nombreBuffer)).collect(Collectors.toList()); // CREO UNA SUBLISTA DE PRONOSTICOS SOLO CORRESPONDIENTES A ESE PARTICIPANTE
