@@ -1,9 +1,9 @@
-package edu.utn.ar;
-
-import javax.xml.transform.Result;
+package edu.utn.ar.utils;
 
 public class Partido {
+
     // ATRIBUTOS DEL OBJETO PARTIDO
+    private int rondaCorrespondiente;
     private String identificacionUnivoca;
     private Equipo equipoLocal;
     private int golesDelLocal;
@@ -11,14 +11,10 @@ public class Partido {
     private int golesDelVisitante;
     private ResultadoEnum resultadoEquipoVisitante;
     private Equipo equipoVisitante;
-    // CONSTRUCTORES
-    public Partido(){ }
-    public Partido (Equipo equipoLocal, Equipo equipoVisitante){
-        this.equipoLocal = equipoLocal;
-        this.equipoVisitante = equipoVisitante;
-    }
+    // CONSTRUCTOR
     // ESTE CONSTRUCTOR LO USO A LA HORA DE LEER EL ARCHIVO RESULTADOS.CSV E INSTANCIAR LOS PARTIDOS!
-    public Partido(String id, Equipo equipoLocal, int gL, int gV, Equipo equipoVisitante){
+    public Partido(int rondaCorrespondiente, String id, Equipo equipoLocal, int gL, int gV, Equipo equipoVisitante){
+        this.rondaCorrespondiente = rondaCorrespondiente;
         this.identificacionUnivoca = id;
         this.equipoLocal = equipoLocal;
         this.resultadoEquipoLocal = this.setResultadoEquipoLocal(gL, gV);
@@ -38,10 +34,10 @@ public class Partido {
     private ResultadoEnum setResultadoEquipoLocal(int gL, int gV){
         ResultadoEnum resultadoBuffer = ResultadoEnum.EMPATE;
         if (gL > gV){
-            resultadoBuffer = ResultadoEnum.GANADOR;
+            resultadoBuffer = ResultadoEnum.VICTORIA;
         }
         if (gL < gV){
-            resultadoBuffer = ResultadoEnum.PERDEDOR;
+            resultadoBuffer = ResultadoEnum.DERROTA;
         }
         return resultadoBuffer;
     }
@@ -51,14 +47,17 @@ public class Partido {
     private ResultadoEnum setResultadoEquipoVisitante(int gL, int gV){
         ResultadoEnum resultadoBuffer = ResultadoEnum.EMPATE;
         if (gL < gV){
-            resultadoBuffer = ResultadoEnum.GANADOR;
+            resultadoBuffer = ResultadoEnum.VICTORIA;
         }
         if (gL > gV){
-            resultadoBuffer = ResultadoEnum.PERDEDOR;
+            resultadoBuffer = ResultadoEnum.DERROTA;
         }
         return resultadoBuffer;
     }
     public ResultadoEnum getResultadoEquipoVisitante(){
         return this.resultadoEquipoVisitante;
+    }
+    public int getRondaCorrespondiente() {
+        return rondaCorrespondiente;
     }
 }

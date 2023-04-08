@@ -1,4 +1,4 @@
-package edu.utn.ar;
+package edu.utn.ar.utils;
 
 import java.awt.*;
 

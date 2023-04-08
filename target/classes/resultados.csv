@@ -1,8 +1,8 @@
 // EQUIPOS: ARGENTINA, MEXICO, HOLANDA, BOLIVIA, FRANCIA, BRASIL, ECUADOR, ALEMANIA, ESPAÑA, COLOMBIA | FORMATO: (STRING)EQUIPOLOCAL;(INT)GOLESEQUIPOLOCAL;(INT)GOLESEQUIPOVISITANTE;(STRING)EQUIPOVISITANTE
-Argentina;1;2;"Arabia Saudita"
-Polonia;0;0;Mexico
-Brasil;1;0;Alemania
-Bolivia;0;8;Francia
-España;1;5;Holanda
-Ecuador;0;0;Polonia
-Ecuador;1;0;Bolivia
+1;Argentina;1;2;"Arabia Saudita"
+1;Polonia;0;0;Mexico
+1;Brasil;1;0;Alemania
+1;Bolivia;0;8;Francia
+2;España;1;5;Holanda
+2;Ecuador;0;0;Polonia
+2;Ecuador;1;0;Bolivia

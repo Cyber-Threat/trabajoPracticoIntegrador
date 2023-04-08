@@ -1,7 +1,6 @@
-package edu.utn.ar;
+package edu.utn.ar.utils;
 
 public class Equipo {
-
     private String identificacionUnivoca;
     private String nombre;
     private String descripcion;

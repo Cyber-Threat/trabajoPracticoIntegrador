@@ -1,0 +1,29 @@
+// EQUIPOS: ARGENTINA, MEXICO, HOLANDA, BOLIVIA, FRANCIA, BRASIL, ECUADOR, ALEMANIA, ESPAÑA, COLOMBIA
+"Maria Laura";Argentina;;;x;Arabia Saudita
+"Maria Laura";Polonia;;x;;Mexico
+Juan Fecha;Brasil;x;;;Alemania
+Juan Fecha;Bolivia;;;x;Francia
+Juan Fecha;Ecuador;x;;;Bolivia
+"Rigoberto Gonzalez";Bolivia;;x;;Francia
+"Rigoberto Gonzalez";Polonia;;x;;Mexico
+"Marco Valentino Alvarado";Argentina;;;x;"Arabia Saudita"
+"Marco Valentino Alvarado";Polonia;;x;;Mexico
+"Marco Valentino Alvarado";Brasil;x;;;Alemania
+"Marco Valentino Alvarado";Bolivia;;;x;Francia
+"Marco Valentino Alvarado";España;;;x;Holanda
+"Marco Valentino Alvarado";Ecuador;;x;;Polonia
+"Marco Valentino Alvarado";Ecuador;x;;;Bolivia
+"Susana Noemi Niz";Bolivia;;;x;Francia
+"Susana Noemi Niz";España;;x;;Holanda
+"Susana Noemi Niz";Ecuador;x;;;Polonia
+"Susana Noemi Niz";Ecuador;;;X;Bolivia
+"Viviana Gomez";Argentina;x;;;"Arabia Saudita"
+"Viviana Gomez";Polonia;x;;;Mexico
+"Viviana Gomez";Brasil;x;;;Alemania
+"Agustin Androna";Argentina;;x;;"Arabia Saudita"
+"Agustin Androna";Polonia;;x;;Mexico
+"Agustin Androna";Brasil;;x;;Alemania
+"Agustin Androna";Bolivia;;x;;Francia
+"Agustin Androna";España;;x;;Holanda
+"Agustin Androna";Ecuador;;x;;Polonia
+"Agustin Androna";Ecuador;;x;;Bolivia
