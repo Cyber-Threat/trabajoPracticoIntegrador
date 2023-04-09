@@ -21,6 +21,9 @@ import java.util.stream.Collectors;
 public class Main {
     private static List<Equipo> equipos = new ArrayList<>();
     private static List<Partido> partidos = new ArrayList<>();
+    // VOY TRACKEANDO LAS RONDAS DE PARTIDOS QUE SE VAN JUGANDO PARA POSTERIORMENTE USAR ESTE DATO PARA ARMAR EL OBJETO RONDAS
+    private static List<Integer> rondasBuffer = new ArrayList<>();
+    // LA LISTA DE RONDAS QUE SE VAN JUGANDO PERO CONTENIENDO SUS RESPECTIVOS PARTIDOS!
     private static List<Ronda> rondas = new ArrayList<>();
     private static List<Pronostico> pronosticos = new ArrayList<>();
     private static List<Participante> participantes = new ArrayList<>();
@@ -58,6 +61,8 @@ public class Main {
             System.out.println(TextFormat.icons.error + "Ejecucion del programa interrumpida por el error mostrado en pantalla.");
             return;
         }
+        // AHORA QUE TENGO LOS PARTIDOS DISPONIBLES ARMO EL OBJETO RONDAS!
+        rondas = armarObjetoRondas(partidos, rondasBuffer);
         // AHORA PROCEDO CON ANALIZAR UNO DE LOS DOS ARCHIVOS!
         pronosticos = leerArchivoPronosticosCSV(pronosticosArchivoCSV, partidos, equipos);
         if (pronosticos == null) {
@@ -111,7 +116,6 @@ public class Main {
         List<Partido> partidos = new ArrayList<>();
         String[] line;
         int lineNumber = 0; // ITERADOR AUXILIAR PARA INFORMAR EN QUE LINEA DEL ARCHIVO ESTA EL PROBLEMA EN CASO QUE SUCEDA ALGO MAL
-        List<Integer> rondaBuffer = new ArrayList<>(); // VOY TRACKEANDO LAS RONDAS QUE SE VAN JUGANDO PARA POSTERIORMENTE USAR ESTE DATO PARA ARMAR EL OBJETO RONDAS
         try (CSVReader reader = new CSVReaderBuilder(new FileReader(ArchivoCSV)).withSkipLines(1).withCSVParser(new CSVParserBuilder().withSeparator(';').build()).build()) {
             while ((line = reader.readNext()) != null) {
                 validacionDeDatos.validacionDePartidoLeido(line);
@@ -122,7 +126,7 @@ public class Main {
                 Equipo equipoVisitanteBuffer = listaEquipos.stream().filter(e -> e.getNombre().equals(finalLine[4])).findFirst().orElse(null); // TENGO QUE MANEJAR UNA EXCEPCION SI NO SE ENCUENTRA EL EQUIPO!!!
                 if (equipoVisitanteBuffer == null ) { throw new Exception("El campo correspondiente al nombre del equipo contiene informacion invalida."); }
                 // EL NUMERO DE RONDA ES USADO PARA CONSTRUIR LA LISTA DE RONDAS
-                if (rondaBuffer.stream().anyMatch(i -> i == Integer.parseInt(finalLine[0])) == false) { rondaBuffer.add(Integer.parseInt(finalLine[0])); }
+                if (rondasBuffer.stream().anyMatch(i -> i == Integer.parseInt(finalLine[0])) == false) { rondasBuffer.add(Integer.parseInt(finalLine[0])); }
                 // CARGAR LA LISTA
                 partidos.add(lineNumber, new Partido(
                         Integer.parseInt(line[0]),    // RONDA EN LA CUAL FUE JUGADO EL PARTIDO
@@ -139,15 +143,19 @@ public class Main {
             TextFormat.informarError(ArchivoCSV, lineNumber, e);
             partidos = null;
         } finally {
-            // ALGORITMO PARA CARGAR LOS PARTIDOS AL OBJETO RONDAS EN EL ORDEN EN EL CUAL SE INSTANCIARON! ESTOY ASUMIENDO QUE DESDE LA BASE DE DATOS ME LLEGAN ORDENADOS!
-            System.out.println(TextFormat.colors.white + TextFormat.effects.bold + String.format("%1$-114s", "\n\t\t\t\t\t► ► ► PARTIDOS INSTANCIADOS! ◄ ◄ ◄") + TextFormat.colors.reset);
-            for (int i = 0; i < rondaBuffer.size(); i++){
-                final int aux = i; // EL INT AUX TIENE QUE SER FINAL PARA PODER SER PASADO A LA EXPRESION LAMBDA CON LA CUAL FILTRO LOS PARTIDOS QUE COINCIDEN CON EL ITERADOR "i"
-                rondas.add(new Ronda(partidos.stream().filter(p -> p.getRondaCorrespondiente() == rondaBuffer.get(aux)).collect(Collectors.toList())));
-                TextFormat.imprimirPartidosInstanciados(rondas.get(i).getPartidos());
-            }
             return partidos;
         }
+    }
+
+    private static List<Ronda> armarObjetoRondas(List<Partido> partidos, List<Integer> rondasBuffer) {
+        // ALGORITMO PARA CARGAR LOS PARTIDOS AL OBJETO RONDAS EN EL ORDEN EN EL CUAL SE INSTANCIARON! ESTOY ASUMIENDO QUE DESDE LA BASE DE DATOS ME LLEGAN ORDENADOS!
+        System.out.println(TextFormat.colors.white + TextFormat.effects.bold + String.format("%1$-114s", "\n\t\t\t\t\t► ► ► PARTIDOS INSTANCIADOS! ◄ ◄ ◄") + TextFormat.colors.reset);
+        for (int i = 0; i < rondasBuffer.size(); i++){
+            final int aux = i; // EL INT AUX TIENE QUE SER FINAL PARA PODER SER PASADO A LA EXPRESION LAMBDA CON LA CUAL FILTRO LOS PARTIDOS QUE COINCIDEN CON EL ITERADOR "i"
+            rondas.add(new Ronda(partidos.stream().filter(p -> p.getRondaCorrespondiente() == rondasBuffer.get(aux)).collect(Collectors.toList())));
+            TextFormat.imprimirPartidosInstanciados(rondas.get(i).getPartidos());
+        }
+        return rondas;
     }
 
     // METODO USADO PARA LEER EL ARCHIVO PRONOSTICOS.CSV
