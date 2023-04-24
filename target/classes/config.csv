@@ -1,0 +1,8 @@
+host:localhost
+port:3306
+dbName:tpIntegrador
+user:root
+pass:root
+puntuacionPorPartido:1
+puntuacionPorRonda:2
+puntuacionPorFase:3

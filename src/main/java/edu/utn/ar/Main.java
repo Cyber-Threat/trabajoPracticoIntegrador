@@ -1,17 +1,18 @@
 package edu.utn.ar;
 // IMPORTACION DE DEPENDENCIAS!
+import org.apache.commons.cli.*;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVParserBuilder;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.exceptions.CsvValidationException;
 import edu.utn.ar.utils.*;
+import org.apache.commons.collections.ArrayStack;
 // IMPORTACION DE LIBRERIAS BUILT-IN!
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,242 +20,181 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Main {
+    private static String parametroArchivoPronosticos;
+    private static String parametroArchivoResultados;
+    private static String parametroArchivoConfig;
+    private static Path rutaDeArchivoConfig;
+    private static Path rutaDeArchivoPronosticos;
+    private static Path rutaDeArchivoResultados;
+    private static File pronosticosArchivoCSV;
+    private static File resultadosArchivoCSV;
+    private static File configArchivoCSV;
     private static List<Equipo> equipos = new ArrayList<>();
     private static List<Partido> partidos = new ArrayList<>();
     // VOY TRACKEANDO LAS RONDAS DE PARTIDOS QUE SE VAN JUGANDO PARA POSTERIORMENTE USAR ESTE DATO PARA ARMAR EL OBJETO RONDAS
     private static List<Integer> rondasBuffer = new ArrayList<>();
     // LA LISTA DE RONDAS QUE SE VAN JUGANDO PERO CONTENIENDO SUS RESPECTIVOS PARTIDOS!
     private static List<Ronda> rondas = new ArrayList<>();
+    // private static List<Fases> fases = new ArrayList<>();
     private static List<Pronostico> pronosticos = new ArrayList<>();
     private static List<Participante> participantes = new ArrayList<>();
+    private static LectorDeArchivosCSV lector;
     public static void main(String[] args) throws Exception {
-        if (args.length == 1 && (args[0].charAt(0) == 'h' || args[0].equals("help"))) {
+        Arrays.stream(args).forEach(System.out::println);
+        // DEFINICION DE LOS PARAMETROS QUE EL PROGRAMA PUEDE O NO RECIBIR!
+        Options options = new Options();
+        options = construccionDeParametros(options); // METODO AUXILIAR PARA CONSTRUIR EL OBJETO TIPO "Options" Y AÑADIR A ESTE LOS PARAMETROS QUE EL PROGRAMA TIENE DISPONIBLE
+        CommandLineParser parser = new DefaultParser();
+        CommandLine parametrosPasados;
+        try {
+            parametrosPasados = parser.parse(options, args);
+            validacionDeRutasPasadasPorParametro(parametrosPasados);
+            lector = new LectorDeArchivosCSV(resultadosArchivoCSV, pronosticosArchivoCSV, configArchivoCSV);
+            lector.ejecutar();
+            if (parametrosPasados.getOptionValue("d").equals("local")) {  // SI EL USUARIO DISPONE DE UN ARCHIVO CSV SE USA ESTE MISMO.
+                System.out.println(TextFormat.icons.info + "Cargando listas localmente ...");
+                cargarListasLocalmente(lector);
+                if (equipos != null && partidos != null && rondas != null) System.out.println(TextFormat.icons.success + "Se ha cargado con exito la lista de equipos, partidos y rondas.");
+                pronosticos = lector.getPronosticos(); // SI SE DESEA USAR LOS PRONOSTICOS DEL ARCHIVO ESPECIFICADO
+                participantes = lector.getParticipantes();
+                if (pronosticos != null & participantes != null) System.out.println(TextFormat.icons.success + "Se ha cargado con exito la lista de pronosticos.");
+            }
+            if (parametrosPasados.getOptionValue("d").equals("remota")){  // SI EL USUARIO DISPONE DE UNA BASE DE DATOS SE INTENTA ACCEDER, ESTO VA A IGNORAR EL ARCHIVO DE PRONOSTICOS SI SE ESPECIFICA!
+                if (!parametrosPasados.getOptionValue("p").equals("")){ // SI EL USUARIO ESPECIFICA UN ARCHIVO CSV PERO EL PARAMETRO -D = REMOTA ENTONCES SE ADVIERTE EL PASO POR ALTO DEL ARCHIVO CSV!
+                    System.out.println(TextFormat.icons.warning + "Advertencia, el parametro \"" + TextFormat.colors.yellow + "-p <rutaDeArchivoPronosticosCSV>" + TextFormat.colors.reset + "\" ha sido ignorado porque se dispone una base de datos.");
+                    System.out.println(TextFormat.icons.warning + "Se va a hacer uso del archivo en caso de que el programa no pueda conectarse a la base de datos.");
+                }
+                cargarListasLocalmente(lector);
+                if (equipos != null && partidos != null && rondas != null) System.out.println(TextFormat.icons.success + "Se ha cargado con exito la lista de equipos, partidos y rondas.");
+                try {
+                    System.out.println(TextFormat.icons.info + "Buscando contenido de la base de datos...");
+                    instanciarPronosticos(); // USO EL METODO QUE ACCEDE A LA BASE DE DATOS ENTONCES NO NECESITA EL ARCHIVO CSV COMO PARAMETRO!
+                    System.out.println(TextFormat.icons.success + "Se ha cargado con exito la lista de pronosticos.");
+                } catch (ClassNotFoundException cnfe){ // SI LANZA EXCEPCION ENTONCES INTENTO CARGAR LA LISTA DE PRONOSTICOS CON EL ARCHIVO CSV DADO PARA LOS PRONOSTICOS!
+                    TextFormat.informarError(cnfe);
+                    System.out.println(TextFormat.icons.error + "No se va a usar la base de datos.");
+                    if (parametroArchivoPronosticos != null){
+                        System.out.println(TextFormat.icons.info + "Se detecto un archivo dado para los pronosticos.");
+                        pronosticos = lector.getPronosticos();
+                        if (pronosticos != null) System.out.println(TextFormat.icons.success + "Se ha cargado con exito la lista de pronosticos.");
+                    }
+                }
+                System.out.println(TextFormat.icons.info + "Tamaño de la lista de participantes: " + TextFormat.colors.blue + participantes.size() + TextFormat.colors.reset);
+                System.out.println(TextFormat.icons.info + "Tamaño de la lista de pronosticos: " + TextFormat.colors.blue + pronosticos.size() + TextFormat.colors.reset);
+            }
+            participantes = cargarPuntosSegunLosPronosticosAcertados();
+            Collections.sort(participantes, (p1, p2) -> Float.compare(p2.getPuntosAcumulados(), p1.getPuntosAcumulados()));
+            TextFormat.imprimirTablaDePuntuaciones(participantes);
+            if (pronosticos == null) { throw new Exception("Algo salio mal durante la carga de la correspondiente a los pronosticos."); }
+        // FIN DEL METODO MAIN
+        } catch (Exception e) {
+            TextFormat.informarError(e);
             TextFormat.helpBanner();
             return;
         }
-        if (args.length != 2) {
-            System.out.println(TextFormat.icons.error + "Parametro(s) invalido(s).");
-            System.out.println(TextFormat.icons.help + "Introduzca <help> o <h> como unico y primer parametro adicional para ver el mensaje de ayuda disponible.");
-            return;
-        }
-        // GUARDADO DE LOS DATOS INTRODUCIDOS POR CONSOLA!
-        Path rutaDeArchivoPronosticos = Paths.get(args[0]).toAbsolutePath();
-        Path rutaDeArchivoResultados = Paths.get(args[1]).toAbsolutePath();
-        // VALIDACION DE LOS DATOS INTRODUCIDOS POR CONSOLA! SI LAS RUTAS INTRODUCIDAS SON SOLO DIRECTORIOS NO SIGO CON EL PROGRAMA Y SE LO INFORMO AL USUARIO!
-        if (validacionDeDatos.rutaEspecificadaEsDirectorio(rutaDeArchivoPronosticos, rutaDeArchivoResultados)) { return; }
-        // AHORA TENGO QUE COMPROBAR QUE LOS ARCHIVOS EXISTAN, A PESAR DE HABER COMPROBADO QUE LAS RUTAS SON VALIDAS!
-        File pronosticosArchivoCSV = new File(rutaDeArchivoPronosticos.toUri());
-        File resultadosArchivoCSV = new File(rutaDeArchivoResultados.toUri());
-        if (validacionDeDatos.losArchivosNoExisten(rutaDeArchivoPronosticos, rutaDeArchivoResultados, pronosticosArchivoCSV, resultadosArchivoCSV)) { return; }
-        // IMPRESION EN PANTALLA DE LOS DATOS VALIDOS!
-        System.out.println(TextFormat.icons.success + "Archivo ingresado correctamente: " + TextFormat.colors.green + rutaDeArchivoPronosticos.getFileName() + TextFormat.colors.reset);
-        System.out.println(TextFormat.icons.success + "Archivo ingresado correctamente: " + TextFormat.colors.green + rutaDeArchivoResultados.getFileName() + TextFormat.colors.reset);
-        // AHORA PROCEDO CON ANALIZAR EL ARCHIVO DE RESULTADOS.CSV SOLO PARA CARGAR LA LISTA DE EQUIPOS
-        equipos = instanciarEquipos(resultadosArchivoCSV);
-        if (equipos == null) {
-            System.out.println(TextFormat.icons.error + "Ejecucion del programa interrumpida por el error mostrado en pantalla.");
-            return;
-        }
-        // AHORA PROCEDO CON ANALIZAR EL ARCHIVO DE RESULTADOS PARA CARGAR LA LISTA DE RONDAS CON LOS PARTIDOS JUGADOS REUTILIZANDO LOS OBJETOS DE TIPO EQUIPO INSTANCIADOS ANTERIORMENTE
-        partidos = leerArchivoResultadosCSV(resultadosArchivoCSV, equipos);
-        if (partidos == null) {
-            System.out.println(TextFormat.icons.error + "Ejecucion del programa interrumpida por el error mostrado en pantalla.");
-            return;
-        }
-        // AHORA QUE TENGO LOS PARTIDOS DISPONIBLES ARMO EL OBJETO RONDAS!
-        rondas = armarObjetoRondas(partidos, rondasBuffer);
-        // AHORA PROCEDO CON ANALIZAR UNO DE LOS DOS ARCHIVOS!
-        pronosticos = leerArchivoPronosticosCSV(pronosticosArchivoCSV, partidos, equipos);
-        if (pronosticos == null) {
-            System.out.println(TextFormat.icons.error + "Ejecucion del programa interrumpida por el error mostrado en pantalla.");
-            return;
-        }
-        // AHORA PROCEDO A COMPARAR LAS DOS LISTAS PARA DETERMINAR EL GANADOR POR PUNTOS!
-        participantes = compararListas(partidos, pronosticos);
-        // FIN DEL METODO MAIN
     }
+    //  METODO USADO PARA CONSTRUIR EL OBJETO OPTIONS Y CREAR LOS PARAMETROS QUE EL PROGRAMA TIENE DISPONIBLE!
+    private static Options construccionDeParametros(Options options) {
+        // CONJUNTO DE PARAMETROS OBLIGATORIOS!
+        Option archivoDeEntradaResultados = new Option("r", "resultados", true, ""); // PARAMETRO PARA ESPECIFICAR LA RUTA DEL ARCHIVO RESULTADOS!
+        archivoDeEntradaResultados.setRequired(true);
+        options.addOption(archivoDeEntradaResultados);
+        Option tipoDeConexion = new Option("d", "database", true, ""); // PARAMETRO PARA SABER SI HAY QUE CONECTARSE A UNA DB O NO PARA OBTENER LOS PRONOSTICOS!
+        tipoDeConexion.setRequired(true);
+        options.addOption(tipoDeConexion);
+        Option archivoConfiguracion = new Option("c", "config", true, ""); // PARAMETRO PARA SABER DONDE ESTA EL ARCHIVO DE CONFIGURACION!
+        archivoConfiguracion.setRequired(true);
+        options.addOption(archivoConfiguracion);
+        // PARAMETROS OPCIONALES!
+        Option archivoDeEntradaPronosticos = new Option("p", "pronosticos", true, ""); // PARAMETRO PARA ESPECIFICAR LA RUTA DEL ARCHIVO PRONOSTICOS!
+        archivoDeEntradaPronosticos.setRequired(false);
+        options.addOption(archivoDeEntradaPronosticos);
+        Option bannerDeAyuda = new Option("h", "help", false, ""); // PARAMETRO POR SI EL USUARIO NECESITA UN MENSAJE DE AYUDA.
+        bannerDeAyuda.setRequired(false);
+        options.addOption(bannerDeAyuda);
+        // RETORNO EL OBJETO MODIFICADO!
+        return options;
+    }
+    // CARGADO DE LAS LISTAS equipos, partidos y rondas LOCALMENTE!
 
-    // METODO USADO PARA CARGAR EQUIPOS!
-    private static List<Equipo> instanciarEquipos(File resultadosArchivoCSV) throws Exception, CsvValidationException {
-        // List<Equipo> equipos = new ArrayList<>();
-        int lineNumber = 0;
-        int identificador = 0;
-        try (CSVReader reader = new CSVReaderBuilder(new FileReader(resultadosArchivoCSV)).withSkipLines(1).withCSVParser(new CSVParserBuilder().withSeparator(';').build()).build()) {
-            String[] line;
-            while ((line = reader.readNext()) != null) {
-                // ME ASEGURO QUE NO ESTEN VACIOS LOS CAMPOS CORRESPONDIENTES A LOS NOMBRES DE LOS EQUIPOS
-                if (line[1].equals("") || line[4].equals("")) {
-                    throw new Exception("Campo correspondiente al nombre de un equipo, esta vacio.");
-                }
-                // ME ASEGURO QUE NO HAYA SIDO CREADO ANTES EL EQUIPO EN CUESTION, SI NO FUE CREADO, CREO UNA INSTANCIA EN UN BUFFER
-                String[] finalLine = line;
-                if (equipos != null && !equipos.stream().anyMatch(equipo -> equipo.getNombre().equals(finalLine[1]))) {
-                    Equipo equipoLocalBuffer = new Equipo(Integer.toString(identificador), line[1]);
-                    equipos.add(lineNumber, equipoLocalBuffer);
-                    identificador++;
-                }
-                if (equipos != null && !equipos.stream().anyMatch(equipo -> equipo.getNombre().equals(finalLine[4]))) {
-                    Equipo equipoVisitanteBuffer = new Equipo(Integer.toString(identificador), line[4]);
-                    equipos.add(lineNumber, equipoVisitanteBuffer);
-                    identificador++;
-                }
-                // SI NO ESTAN VACIOS LOS CAMPOS CORRESPONDIENTES AL EQUIPO Y EL EQUIPO EN CUESTION NO FUE CREADO ANTES, ENTONCES LOS CARGO A LA LISTA
-                lineNumber++;
+    private static void validacionDeRutasPasadasPorParametro(CommandLine parametrosPasados) throws Exception {
+        parametroArchivoResultados = (parametrosPasados.hasOption("r")) ? parametrosPasados.getOptionValue("r") : null;
+        parametroArchivoConfig = (parametrosPasados.hasOption("c")) ? parametrosPasados.getOptionValue("c") : null;
+        parametroArchivoPronosticos = (parametrosPasados.hasOption("p")) ? parametrosPasados.getOptionValue("p") : null;
+        rutaDeArchivoResultados = (parametroArchivoResultados != null) ? Paths.get(parametroArchivoResultados).toAbsolutePath() : null;
+        rutaDeArchivoConfig = (parametroArchivoConfig != null) ? Paths.get(parametroArchivoConfig).toAbsolutePath() : null;
+        rutaDeArchivoPronosticos = (parametroArchivoPronosticos != null) ? Paths.get(parametroArchivoPronosticos).toAbsolutePath() : null;
+        if (ValidacionDeDatos.rutaEspecificadaEsDirectorio(true, rutaDeArchivoResultados, rutaDeArchivoConfig, rutaDeArchivoPronosticos)){
+            throw new Exception("Los parametros mencionados son directorios y no archivos.");
+        }
+        if (ValidacionDeDatos.losArchivosNoExisten(true, rutaDeArchivoResultados, rutaDeArchivoConfig, rutaDeArchivoPronosticos)) {
+            throw new Exception("Los archivos mencionados no existen.");
+        }
+        resultadosArchivoCSV = new File(rutaDeArchivoResultados.toUri());
+        configArchivoCSV = new File(rutaDeArchivoConfig.toUri());
+        pronosticosArchivoCSV = new File(rutaDeArchivoPronosticos.toUri());
+    }
+    private static void cargarListasLocalmente(LectorDeArchivosCSV lector) throws Exception {
+        try {
+            // AHORA PROCEDO CON ANALIZAR EL ARCHIVO DE RESULTADOS.CSV SOLO PARA CARGAR LA LISTA DE EQUIPOS
+            equipos = lector.getEquipos();
+            if (equipos == null) {
+                throw new Exception("Algo salio mal durante la carga de la correspondiente a los equipos.");
             }
-        } catch (Exception e) {
-            TextFormat.informarError(resultadosArchivoCSV, lineNumber, e);
-            equipos = null;
-        } finally {
-            // SENCILLAMENTE IMPRIMO LOS ELEMENTOS EN PANTALLA PARA VER QUE ESTA BIEN LO QUE HICE!
-            TextFormat.imprimirEquiposInstanciados(equipos);
-            return equipos;
-        }
-    }
-
-    // METODO USADO PARA CARGAR LA LISTA DE PARTIDOS!
-    private static List<Partido> leerArchivoResultadosCSV(File ArchivoCSV, List<Equipo> listaEquipos) throws Exception, CsvValidationException {
-        List<Partido> partidos = new ArrayList<>();
-        String[] line;
-        int lineNumber = 0; // ITERADOR AUXILIAR PARA INFORMAR EN QUE LINEA DEL ARCHIVO ESTA EL PROBLEMA EN CASO QUE SUCEDA ALGO MAL
-        try (CSVReader reader = new CSVReaderBuilder(new FileReader(ArchivoCSV)).withSkipLines(1).withCSVParser(new CSVParserBuilder().withSeparator(';').build()).build()) {
-            while ((line = reader.readNext()) != null) {
-                validacionDeDatos.validacionDePartidoLeido(line);
-                // TENGO QUE ASEGURARME DE NO INSTANCIAR UN EQUIPO REPETIDAS VECES!
-                String[] finalLine = line;
-                Equipo equipoLocalBuffer = listaEquipos.stream().filter(e -> e.getNombre().equals(finalLine[1])).findFirst().orElse(null); // TENGO QUE MANEJAR UNA EXCEPCION SI NO SE ENCUENTRA EL EQUIPO!!!
-                if (equipoLocalBuffer == null ) { throw new Exception("El campo correspondiente al nombre del equipo contiene informacion invalida."); }
-                Equipo equipoVisitanteBuffer = listaEquipos.stream().filter(e -> e.getNombre().equals(finalLine[4])).findFirst().orElse(null); // TENGO QUE MANEJAR UNA EXCEPCION SI NO SE ENCUENTRA EL EQUIPO!!!
-                if (equipoVisitanteBuffer == null ) { throw new Exception("El campo correspondiente al nombre del equipo contiene informacion invalida."); }
-                // EL NUMERO DE RONDA ES USADO PARA CONSTRUIR LA LISTA DE RONDAS
-                if (rondasBuffer.stream().anyMatch(i -> i == Integer.parseInt(finalLine[0])) == false) { rondasBuffer.add(Integer.parseInt(finalLine[0])); }
-                // CARGAR LA LISTA
-                partidos.add(lineNumber, new Partido(
-                        Integer.parseInt(line[0]),    // RONDA EN LA CUAL FUE JUGADO EL PARTIDO
-                        Integer.toString(lineNumber), // IDENTIFICACION UNIVOCA DEL PARTIDO!
-                        equipoLocalBuffer,            // EQUIPO LOCAL!
-                        Integer.parseInt(line[2]),    // GOLES DEL EQUIPO LOCAL!
-                        Integer.parseInt(line[3]),    // GOLES DEL EQUIPO VISITANTE!
-                        equipoVisitanteBuffer         // EQUIPO VISITANTE!
-                        ));
-                // CAMBIO DE INDICE!
-                lineNumber++;
+            // AHORA PROCEDO CON ANALIZAR EL ARCHIVO DE RESULTADOS PARA CARGAR LA LISTA DE RONDAS CON LOS PARTIDOS JUGADOS REUTILIZANDO LOS OBJETOS DE TIPO EQUIPO INSTANCIADOS ANTERIORMENTE
+            partidos = lector.getPartidos();
+            if (partidos == null) {
+                throw new Exception("Algo salio mal durante la carga de la correspondiente a los partidos.");
             }
-        } catch (Exception e) {
-            TextFormat.informarError(ArchivoCSV, lineNumber, e);
-            partidos = null;
-        } finally {
-            return partidos;
+            // AHORA QUE TENGO LOS PARTIDOS DISPONIBLES ARMO EL OBJETO RONDAS!
+            rondas = lector.getRondas();
+        } catch (Exception e){
+            TextFormat.informarError(e);
         }
     }
-
-    private static List<Ronda> armarObjetoRondas(List<Partido> partidos, List<Integer> rondasBuffer) {
-        // ALGORITMO PARA CARGAR LOS PARTIDOS AL OBJETO RONDAS EN EL ORDEN EN EL CUAL SE INSTANCIARON! ESTOY ASUMIENDO QUE DESDE LA BASE DE DATOS ME LLEGAN ORDENADOS!
-        System.out.println(TextFormat.colors.white + TextFormat.effects.bold + String.format("%1$-114s", "\n\t\t\t\t\t► ► ► PARTIDOS INSTANCIADOS! ◄ ◄ ◄") + TextFormat.colors.reset);
-        for (int i = 0; i < rondasBuffer.size(); i++){
-            final int aux = i; // EL INT AUX TIENE QUE SER FINAL PARA PODER SER PASADO A LA EXPRESION LAMBDA CON LA CUAL FILTRO LOS PARTIDOS QUE COINCIDEN CON EL ITERADOR "i"
-            rondas.add(new Ronda(partidos.stream().filter(p -> p.getRondaCorrespondiente() == rondasBuffer.get(aux)).collect(Collectors.toList())));
-            TextFormat.imprimirPartidosInstanciados(rondas.get(i).getPartidos());
-        }
-        return rondas;
-    }
-
-    // METODO USADO PARA LEER EL ARCHIVO PRONOSTICOS.CSV
-    private static List<Pronostico> leerArchivoPronosticosCSV(File ArchivoCSV, List<Partido> partidos, List<Equipo> equipos) {
-        List<Pronostico> pronosticos = new ArrayList<>();
-        String[] line;
-        int lineNumber = 0;
-        try (CSVReader reader = new CSVReaderBuilder(new FileReader(ArchivoCSV)).withSkipLines(1).withCSVParser(new CSVParserBuilder().withSeparator(';').build()).build()) {
-            while ((line = reader.readNext()) != null) {
-                String[] finalLine = line;
-                // VALIDACION DE LOS DATOS LEIDOS DE LA LINEA
-                validacionDeDatos.validacionDelPronosticoLeido(pronosticos, line, finalLine);
-                // PROCEDO CON LA LOGICA DEL METODO
-                String nombreParticipanteBuffer = line[0];
-                Equipo equipoLocalBuffer = equipos.stream().filter(e -> e.getNombre().equals(finalLine[1])).findFirst().orElse(null);
-                Equipo equipoVisitanteBuffer = equipos.stream().filter(e -> e.getNombre().equals(finalLine[5])).findFirst().orElse(null);
-                // SI EL EQUIPO ESPECIFICADO EN EL PRONOSTICO NO EXISTE ENTONCES LANZO UNA EXCEPCION!
-                if (equipoLocalBuffer == null)
-                    throw new Exception("El campo correspondiente al equipo local contiene informacion invalida: " + TextFormat.colors.red + finalLine[1]);
-                if (equipoVisitanteBuffer == null)
-                    throw new Exception("El campo correspondiente al equipo visitante contiene informacion invalida: " + TextFormat.colors.red + finalLine[5]);
-                ResultadoEnum resultadoEquipoLocalBuffer = null;
-                ResultadoEnum resultadoEquipoVisitanteBuffer = null;
-                if (line[2].equals("x") || line[2].equals("X")) {
-                    resultadoEquipoLocalBuffer = ResultadoEnum.VICTORIA;
-                    resultadoEquipoVisitanteBuffer = ResultadoEnum.DERROTA;
-                }
-                if (line[3].equals("x") || line[3].equals("X")) {
-                    resultadoEquipoLocalBuffer = ResultadoEnum.EMPATE;
-                    resultadoEquipoVisitanteBuffer = ResultadoEnum.EMPATE;
-                }
-                if (line[4].equals("x") || line[4].equals("X")) {
-                    resultadoEquipoLocalBuffer = ResultadoEnum.DERROTA;
-                    resultadoEquipoVisitanteBuffer = ResultadoEnum.VICTORIA;
-                }
-                Partido partidoBuffer = partidos.stream().filter(p -> p.getEquipoLocal().getNombre().equals(finalLine[1]) && p.getEquipoVisitante().getNombre().equals(finalLine[5])).findFirst().get();
-                pronosticos.add(lineNumber, new Pronostico(nombreParticipanteBuffer, partidoBuffer, equipoLocalBuffer, equipoVisitanteBuffer, resultadoEquipoLocalBuffer, resultadoEquipoVisitanteBuffer));
-                lineNumber++;
+    // METODO USADO PARA CARGAR LA LISTA DE PRONOSTICOS Y PARTICIPANTES USANDO UNA BASE DE DATOS!
+    private static void instanciarPronosticos() throws ClassNotFoundException, SQLException {
+        // AHORA TENGO QUE CREAR UNA INSTANCIA DE MYSQLCONNECTOR!
+        MySqlConnector jdbcInstancia = new MySqlConnector(equipos, partidos, participantes, pronosticos);
+        try {
+            jdbcInstancia.setHost(lector.getHost());
+            jdbcInstancia.setPort(lector.getPort());
+            jdbcInstancia.setDb_name(lector.getDbName());
+            jdbcInstancia.setDb_url();
+            jdbcInstancia.setUser(lector.getUser());
+            jdbcInstancia.setPass(lector.getPass()); // YA TERMINÉ DE CONFIGURAR EL SQLCONNECTOR! AHORA LO EJECUTO:
+            jdbcInstancia.ejecutar();
+            participantes = jdbcInstancia.getParticipantes();
+            pronosticos = jdbcInstancia.getPronosticos();
+        } catch (Exception e){
+            if (e instanceof ClassNotFoundException) {
+                TextFormat.informarError(e);
+                throw new ClassNotFoundException(TextFormat.icons.error + TextFormat.colors.red + "Fatal. No se encontro un driver." + TextFormat.colors.reset);
             }
-        } catch (Exception e) {
-            TextFormat.informarError(ArchivoCSV, lineNumber, e);
-            pronosticos = null;
-        } finally {
-            return pronosticos;
+            TextFormat.informarError(e);
         }
     }
-
-    // METODO USADOS PARA COMPARAR LAS LISTAS OBTENIDAS A PARTIR DE LOS ARCHIVOS
-    private static List<Participante> compararListas(List<Partido> listaPartidos, List<Pronostico> listaPronosticos) throws Exception {
-        List<Participante> participantes = new ArrayList<>();
-        int indicePronosticos = 0;
-        int indiceParticipantes = 0;
-        int identificador = 0; // EL INT QUE PIENSO USAR COMO IDENTIFICADOR UNIVOCO
-        // ITERO A LO LARGO DE LA LISTA DE PRONOSTICOS PARA OBTENER LOS PARTICIPANTES
-
-        do {
-            String nombreBufferAux = listaPronosticos.get(indicePronosticos).getNombreParticipante();
-            // SI EL PARTICIPANTE NO EXISTE ENTONCES LO CREO Y DESPUÉS LO CARGO EN LA LISTA
-            if (participantes.stream().filter(p -> p.getNombre().equals(nombreBufferAux)).findFirst().orElse(null) == null) {
-                participantes.add(indiceParticipantes, new Participante(Integer.toString(identificador), nombreBufferAux));
-                // ACTUALIZO LOS ITERADORES PARA LOS PARTICIPANTES Y EL ITERADOR QUE USO PARA IDENTIFICACION UNIVOCA!
-                indiceParticipantes++;
-                identificador++;
-            }
-            // ACTUALIZO EL ITERADOR DE PRONOSTICOS!
-            indicePronosticos++;
-        } while (indicePronosticos < listaPronosticos.size());
-        // AHORA LE CARGO LOS PUNTOS A LOS PARTICIPANTES!
-        participantes = cargarPuntosSegunLosPronosticosAcertados(listaPronosticos, listaPartidos, participantes);
-        Collections.sort(participantes, (p1, p2) -> Float.compare(p2.getPuntosAcumulados(), p1.getPuntosAcumulados()));
-        TextFormat.imprimirTablaDePuntuaciones(participantes);
-        return participantes;
-    }
-
     // CARGO LOS PUNTOS CORRESPONDIENTES A CADA PARTICIPANTE ITERANDO SOBRE LA LISTA DE PRONOSTICOS Y EVALUANDO SI EXISTE EL PARTIDO AL CUAL SE REFIEREN!
-    private static List<Participante> cargarPuntosSegunLosPronosticosAcertados(List<Pronostico> listaPronosticos, List<Partido> listaPartidos, List<Participante> listaParticipantes) {
-        int indiceParticipantes = 0;
-        List<Participante> participantes = listaParticipantes;
-        List<Pronostico> subListaPronosticos = new ArrayList<>();
-        // PARA CADA PARTICIPANTE QUIERO SABER QUÉ PRONÓSTICOS ACERTARON
+    private static List<Participante> cargarPuntosSegunLosPronosticosAcertados() {
+        int iterador = 0;
         System.out.println(TextFormat.colors.white + TextFormat.effects.bold + String.format("%1$-114s", "\n\t\t\t\t\t► ► ► PRONOSTICOS DE LOS PARTICIPANTES! ◄ ◄ ◄") + TextFormat.colors.reset);
+        // ABRO UN BUCLE PARA ITERAR A LO LARGO DE LA LISTA DE PRONOSTICOS
         do {
-            String nombreBuffer = listaParticipantes.get(indiceParticipantes).getNombre(); // ME GUARDO EL NOMBRE DEL PARTICIPANTE DE ESTA ITERACION EN UN BUFFER
-            subListaPronosticos = listaPronosticos.stream().filter(l -> l.getNombreParticipante().equals(nombreBuffer)).collect(Collectors.toList()); // CREO UNA SUBLISTA DE PRONOSTICOS SOLO CORRESPONDIENTES A ESE PARTICIPANTE
-            int indicePartidos = 0;
-            for (int i = 0; i < subListaPronosticos.size(); i++) { // PARA CADA PRONOSTICO DE LA SUBLISTA QUIERO SABER CUALES SON ACERTADOS
-                String nombreLocalBuffer = subListaPronosticos.get(i).getEquipoLocal().getNombre();
-                String nombreVisitanteBuffer = subListaPronosticos.get(i).getEquipoVisitante().getNombre();
-                // BUSCO EL PARTIDO AL QUE SE REFIERE EL PRONOSTICO PARA LA POSTERIOR EVALUACION!
-                Partido pBuffer = listaPartidos.stream().filter(p -> p.getEquipoLocal().getNombre().equals(nombreLocalBuffer) && p.getEquipoVisitante().getNombre().equals(nombreVisitanteBuffer)).findFirst().get();
-                // EFECTIVAMENTE EVALUO SI EL PRONOSTICO ES ACERTADO, DE SER EL CASO SUMO PUNTOS AL PARTICIPANTE!!
-                if (pBuffer.getResultadoEquipoLocal() == subListaPronosticos.get(i).getPronosticoEquipoLocal() && pBuffer.getResultadoEquipoVisitante() == subListaPronosticos.get(i).getPronosticoEquipoVisitante()) {
-                    participantes.get(indiceParticipantes).adicionarPuntos(1.0f);
-                }
-                System.out.println(TextFormat.colors.cyan + String.format("%1$-128s", " ").replace(' ', '─') + TextFormat.colors.reset);
-                TextFormat.imprimirPronosticosDelParticipante(indiceParticipantes, participantes, subListaPronosticos, nombreBuffer, i, pBuffer);
+            System.out.println(TextFormat.colors.cyan + String.format("%1$-128s", " ").replace(' ', '─') + TextFormat.colors.reset);
+            // AHORA EVALUO SI HAY UN PARTIDO AL QUE SE REFIERE EL PARTICIPANTE CON ESTE PRONOSTICO Y SI EFECTIVAMENTE ES ACERTADO
+            Partido pBuffer = ValidacionDeDatos.buscarRetornarPartidoExistente(partidos, pronosticos.get(iterador).getEquipoLocal().getNombre(), pronosticos.get(iterador).getEquipoVisitante().getNombre());
+            // GUARDO EL PRONOSTICO EN UN BUFFER PARA USARLO MAS COMODAMENTE
+            Pronostico pronosticoBuffer = pronosticos.get(iterador);
+            boolean condicionDeCarga = (pronosticoBuffer.getPronosticoEquipoLocal() == pBuffer.getResultadoEquipoLocal()) && (pronosticoBuffer.getPronosticoEquipoVisitante() == pBuffer.getResultadoEquipoVisitante());
+            if (condicionDeCarga){
+                String nombreParticipanteBuffer = pronosticos.get(iterador).getObjParticipante().getNombre();
+                participantes.stream().filter(p -> p.getNombre().equals(nombreParticipanteBuffer)).findFirst().get().adicionarPuntos(1.0f);
             }
-            indiceParticipantes++;
-        } while (indiceParticipantes < listaParticipantes.size());
+            // IMPRIMO EL PRONOSTICO EN CUESTION:
+            TextFormat.imprimirPronosticoDelParticipante(pronosticos, iterador, condicionDeCarga);
+            iterador++;
+        } while (iterador < pronosticos.size());
+        // CIERRO EL BUCLE!
         System.out.println(TextFormat.colors.cyan + String.format("%1$-128s", " ").replace(' ', '─') + TextFormat.colors.reset);
         return participantes;
     }

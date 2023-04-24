@@ -1,29 +1,29 @@
-// EQUIPOS: ARGENTINA, MEXICO, HOLANDA, BOLIVIA, FRANCIA, BRASIL, ECUADOR, ALEMANIA, ESPAÑA, COLOMBIA
-"Maria Laura";Argentina;;;x;Arabia Saudita
-"Maria Laura";Polonia;;x;;Mexico
-Juan Fecha;Brasil;x;;;Alemania
-Juan Fecha;Bolivia;;;x;Francia
-Juan Fecha;Ecuador;x;;;Bolivia
-"Rigoberto Gonzalez";Bolivia;;x;;Francia
-"Rigoberto Gonzalez";Polonia;;x;;Mexico
-"Marco Valentino Alvarado";Argentina;;;x;"Arabia Saudita"
-"Marco Valentino Alvarado";Polonia;;x;;Mexico
-"Marco Valentino Alvarado";Brasil;x;;;Alemania
-"Marco Valentino Alvarado";Bolivia;;;x;Francia
-"Marco Valentino Alvarado";España;;;x;Holanda
-"Marco Valentino Alvarado";Ecuador;;x;;Polonia
-"Marco Valentino Alvarado";Ecuador;x;;;Bolivia
-"Susana Noemi Niz";Bolivia;;;x;Francia
-"Susana Noemi Niz";España;;x;;Holanda
-"Susana Noemi Niz";Ecuador;x;;;Polonia
-"Susana Noemi Niz";Ecuador;;;X;Bolivia
-"Viviana Gomez";Argentina;x;;;"Arabia Saudita"
-"Viviana Gomez";Polonia;x;;;Mexico
-"Viviana Gomez";Brasil;x;;;Alemania
-"Agustin Androna";Argentina;;x;;"Arabia Saudita"
-"Agustin Androna";Polonia;;x;;Mexico
-"Agustin Androna";Brasil;;x;;Alemania
-"Agustin Androna";Bolivia;;x;;Francia
-"Agustin Androna";España;;x;;Holanda
-"Agustin Androna";Ecuador;;x;;Polonia
-"Agustin Androna";Ecuador;;x;;Bolivia
+// EQUIPOS: ARGENTINA, MEXICO, HOLANDA, BOLIVIA, FRANCIA, BRASIL, ECUADOR, ALEMANIA, ESPAÑA, COLOMBIA - CAMPOS: NOMBRE;DNI;EQUIPO1;GANAEQUIPO1;EMPATE;GANAEQUIPO2;EQUIPO2
+"Maria Laura";1;Argentina;;;x;Arabia Saudita
+"Maria Laura";1;Polonia;;x;;Mexico
+Juan Fecha;2;Brasil;x;;;Alemania
+Juan Fecha;2;Bolivia;;;x;Francia
+Juan Fecha;2;Ecuador;x;;;Bolivia
+"Rigoberto Gonzalez";3;Bolivia;;x;;Francia
+"Rigoberto Gonzalez";3;Polonia;;x;;Mexico
+"Marco Valentino Alvarado";4;Argentina;;;x;"Arabia Saudita"
+"Marco Valentino Alvarado";4;Polonia;;x;;Mexico
+"Marco Valentino Alvarado";4;Brasil;x;;;Alemania
+"Marco Valentino Alvarado";4;Bolivia;;;x;Francia
+"Marco Valentino Alvarado";4;España;;;x;Holanda
+"Marco Valentino Alvarado";4;Ecuador;;x;;Polonia
+"Marco Valentino Alvarado";4;Ecuador;x;;;Bolivia
+"Susana Noemi Niz";5;Bolivia;;;x;Francia
+"Susana Noemi Niz";5;España;;x;;Holanda
+"Susana Noemi Niz";5;Ecuador;x;;;Polonia
+"Susana Noemi Niz";5;Ecuador;;;X;Bolivia
+"Viviana Gomez";6;Argentina;x;;;"Arabia Saudita"
+"Viviana Gomez";6;Polonia;x;;;Mexico
+"Viviana Gomez";6;Brasil;x;;;Alemania
+"Agustin Androna";7;Argentina;;x;;"Arabia Saudita"
+"Agustin Androna";7;Polonia;;x;;Mexico
+"Agustin Androna";7;Brasil;;x;;Alemania
+"Agustin Androna";7;Bolivia;;x;;Francia
+"Agustin Androna";7;España;;x;;Holanda
+"Agustin Androna";7;Ecuador;;x;;Polonia
+"Agustin Androna";7;Ecuador;;x;;Bolivia

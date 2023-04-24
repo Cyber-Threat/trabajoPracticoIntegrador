@@ -1,13 +1,11 @@
 package edu.utn.ar.utils;
 
-import java.awt.*;
-
 public class Participante {
 
-    private String identificacionUnivoca;
-    private String nombre;
+    private final Integer identificacionUnivoca;
+    private final String nombre;
     private Float puntosAcumulados;
-    public Participante(String id, String nombre){
+    public Participante(Integer id, String nombre){
         this.identificacionUnivoca = id;
         this.nombre = nombre;
         this.puntosAcumulados = 0.0f;
@@ -15,14 +13,13 @@ public class Participante {
     public String getNombre() {
         return this.nombre;
     }
-    public void setPuntosAcumulados(Float puntos){
-        this.puntosAcumulados = puntos;
-    }
     public Float getPuntosAcumulados(){
         return this.puntosAcumulados;
     }
-    public void adicionarPuntos(Float p){ this.puntosAcumulados = this.getPuntosAcumulados() + p; }
-    public String getIdentificacionUnivoca() {
+    public void adicionarPuntos(Float p){
+        this.puntosAcumulados = this.getPuntosAcumulados() + p;
+    }
+    public Integer getIdentificacionUnivoca() {
         return identificacionUnivoca;
     }
 }

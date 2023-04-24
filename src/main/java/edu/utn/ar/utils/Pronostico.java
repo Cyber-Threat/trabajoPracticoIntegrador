@@ -1,16 +1,16 @@
 package edu.utn.ar.utils;
 
 public class Pronostico {
-    private String nombreParticipante;
-    private Partido partido;
-    private Equipo equipoLocal;
-    private Equipo equipoVisitante;
-    private ResultadoEnum pronosticoEquipoLocal;
-    private ResultadoEnum pronosticoEquipoVisitante;
-    public Pronostico(){
-    }
-    public Pronostico(String n, Partido p, Equipo eL, Equipo eV, ResultadoEnum pronosticoEquipoLocal, ResultadoEnum pronosticoEquipoVisitante){
-        this.nombreParticipante = n;
+    private final int idUnivoca;
+    private final Participante ObjParticipante;
+    private final Partido partido;
+    private final Equipo equipoLocal;
+    private final Equipo equipoVisitante;
+    private final ResultadoEnum pronosticoEquipoLocal;
+    private final ResultadoEnum pronosticoEquipoVisitante;
+    public Pronostico(int idUnivoca, Participante participante, Partido p, Equipo eL, Equipo eV, ResultadoEnum pronosticoEquipoLocal, ResultadoEnum pronosticoEquipoVisitante){
+        this.idUnivoca = idUnivoca;
+        this.ObjParticipante = participante;
         this.partido = p;
         this.equipoLocal = eL;
         this.equipoVisitante = eV;
@@ -18,16 +18,20 @@ public class Pronostico {
         this.pronosticoEquipoVisitante = pronosticoEquipoVisitante;
     }
     public Partido getPartido() { return partido; }
-    public void setPartido(Partido partido) { this.partido = partido; }
+//  public void setPartido(Partido partido) { this.partido = partido; }
     public Equipo getEquipoLocal() { return equipoLocal; }
-    public void setEquipoLocal(Equipo equipo) { this.equipoLocal = equipo; }
+//  public void setEquipoLocal(Equipo equipo) { this.equipoLocal = equipo; }
     public Equipo getEquipoVisitante() { return equipoVisitante; }
-    public void setEquipoVisitante(Equipo equipoVisitante) { this.equipoVisitante = equipoVisitante; }
-    public String getNombreParticipante(){ return this.nombreParticipante; }
+//  public void setEquipoVisitante(Equipo equipoVisitante) { this.equipoVisitante = equipoVisitante; }
+    public Participante getObjParticipante(){ return this.ObjParticipante; }
     public ResultadoEnum getPronosticoEquipoLocal (){
         return this.pronosticoEquipoLocal;
     }
     public ResultadoEnum getPronosticoEquipoVisitante (){
         return this.pronosticoEquipoVisitante;
+    }
+
+    public int getIdUnivoca() {
+        return idUnivoca;
     }
 }

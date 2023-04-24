@@ -3,17 +3,17 @@ package edu.utn.ar.utils;
 public class Partido {
 
     // ATRIBUTOS DEL OBJETO PARTIDO
-    private int rondaCorrespondiente;
-    private String identificacionUnivoca;
-    private Equipo equipoLocal;
-    private int golesDelLocal;
-    private ResultadoEnum resultadoEquipoLocal;
-    private int golesDelVisitante;
-    private ResultadoEnum resultadoEquipoVisitante;
-    private Equipo equipoVisitante;
+    private final int rondaCorrespondiente;
+    private final int identificacionUnivoca;
+    private final Equipo equipoLocal;
+    private final int golesDelLocal;
+    private final ResultadoEnum resultadoEquipoLocal;
+    private final int golesDelVisitante;
+    private final ResultadoEnum resultadoEquipoVisitante;
+    private final Equipo equipoVisitante;
     // CONSTRUCTOR
     // ESTE CONSTRUCTOR LO USO A LA HORA DE LEER EL ARCHIVO RESULTADOS.CSV E INSTANCIAR LOS PARTIDOS!
-    public Partido(int rondaCorrespondiente, String id, Equipo equipoLocal, int gL, int gV, Equipo equipoVisitante){
+    public Partido(int rondaCorrespondiente, int id, Equipo equipoLocal, int gL, int gV, Equipo equipoVisitante){
         this.rondaCorrespondiente = rondaCorrespondiente;
         this.identificacionUnivoca = id;
         this.equipoLocal = equipoLocal;
@@ -28,7 +28,7 @@ public class Partido {
     public int getGolesDelLocal() { return golesDelLocal; }
     public int getGolesDelVisitante() { return golesDelVisitante; }
     public Equipo getEquipoVisitante() { return equipoVisitante; }
-    public String getIdentificacionUnivoca() {
+    public int getIdentificacionUnivoca() {
         return identificacionUnivoca;
     }
     private ResultadoEnum setResultadoEquipoLocal(int gL, int gV){

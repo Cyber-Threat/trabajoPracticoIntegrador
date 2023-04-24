@@ -51,45 +51,59 @@ public abstract class TextFormat {
             } while (iP < partidos.size());
         }
     }
-    public static void imprimirPronosticosDelParticipante(int indiceParticipantes, List<Participante> participantes, List<Pronostico> subListaPronosticos, String nombreBuffer, int i, Partido pBuffer) {
+    public static void imprimirPronosticoDelParticipante(List<Pronostico> listaPronosticos, int iterador, boolean condicionDeCarga) {
         String formatSpecifier = "%1$-64s";
-        System.out.println(TextFormat.icons.info + String.format(formatSpecifier, "Pronosticos correspondientes al participante:") + TextFormat.colors.green + nombreBuffer + TextFormat.colors.reset
-                + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset + String.format(formatSpecifier, "Identificacion univoca del partido referido:")
-                + TextFormat.colors.blue + subListaPronosticos.get(i).getPartido().getIdentificacionUnivoca() + TextFormat.colors.reset
-                + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset + String.format(formatSpecifier, "Equipo local del pronostico:")
-                + TextFormat.colors.green + subListaPronosticos.get(i).getEquipoLocal().getNombre() + TextFormat.colors.reset + ": "
-                + TextFormat.colors.cyan + subListaPronosticos.get(i).getPronosticoEquipoLocal() + TextFormat.colors.reset
-                + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset + String.format(formatSpecifier, "Equipo visitante del pronostico:") + TextFormat.colors.green
-                + subListaPronosticos.get(i).getEquipoVisitante().getNombre() + TextFormat.colors.reset + ": "
-                + TextFormat.colors.cyan + subListaPronosticos.get(i).getPronosticoEquipoVisitante() + TextFormat.colors.reset
-                + TextFormat.colors.blue + "\n\t ├─ " + TextFormat.colors.reset
-                + String.format(formatSpecifier, "Resultados del partido referido por el participante:")
-                + "Ronda: " + TextFormat.colors.blue + pBuffer.getRondaCorrespondiente() + TextFormat.colors.reset + " ► "
-                + TextFormat.colors.green + pBuffer.getEquipoLocal().getNombre() + TextFormat.colors.reset
-                + " (" + TextFormat.colors.red + pBuffer.getResultadoEquipoLocal() + TextFormat.colors.reset+ ")"
-                + " vs. " + TextFormat.colors.green + pBuffer.getEquipoVisitante().getNombre() + TextFormat.colors.reset
-                + " (" + TextFormat.colors.red + pBuffer.getResultadoEquipoVisitante() + TextFormat.colors.reset+ ")"
-                + TextFormat.colors.blue + "\n\t └─ " + TextFormat.colors.purple + String.format(formatSpecifier, "Puntos acumulados hasta el momento: ")
-                + participantes.get(indiceParticipantes).getPuntosAcumulados() + TextFormat.colors.reset);
+        System.out.println(icons.info + String.format(formatSpecifier, "Informacion del pronostico ID: ") + colors.blue + listaPronosticos.get(iterador).getIdUnivoca() + colors.reset
+                                      + TextFormat.colors.blue + "\n\t ├─ " + colors.reset
+                                      + String.format(formatSpecifier, "Nombre del participante: ") + colors.cyan
+                                      + listaPronosticos.get(iterador).getObjParticipante().getNombre() + colors.reset
+                                      + TextFormat.colors.blue + "\n\t ├─ " + colors.reset
+                                      + String.format(formatSpecifier, "Identificacion univoca del participante: ") + colors.cyan
+                                      + listaPronosticos.get(iterador).getObjParticipante().getIdentificacionUnivoca() + colors.reset
+                                      + TextFormat.colors.blue + "\n\t ├─ " + colors.reset
+                                      + String.format(formatSpecifier, "Partido al que se refiere: ")+ "ID: " + colors.green
+                                      + listaPronosticos.get(iterador).getPartido().getIdentificacionUnivoca() + colors.reset + " ◄► "
+                                      + listaPronosticos.get(iterador).getPartido().getEquipoLocal().getNombre()+ " " + colors.blue + listaPronosticos.get(iterador).getPartido().getResultadoEquipoLocal() + colors.reset
+                                      + " vs. " + listaPronosticos.get(iterador).getPartido().getEquipoVisitante().getNombre()+ " " + colors.blue + listaPronosticos.get(iterador).getPartido().getResultadoEquipoVisitante() + colors.reset
+                                      + TextFormat.colors.blue + "\n\t └─ " + TextFormat.colors.reset
+                                      + String.format(formatSpecifier, "Pronostico hecho: ")
+                                      + ((condicionDeCarga) ? colors.purple + "CORRECTO! " + colors.reset + "◄► " + colors.reset: colors.red + "INCORRECTO! " + colors.reset + "◄► " + colors.reset)
+                                      + listaPronosticos.get(iterador).getEquipoLocal().getNombre() + " " + colors.green
+                                      + listaPronosticos.get(iterador).getPronosticoEquipoLocal() + colors.reset + " vs. "
+                                      + listaPronosticos.get(iterador).getEquipoVisitante().getNombre() + " " + colors.green
+                                      + listaPronosticos.get(iterador).getPronosticoEquipoVisitante() + colors.reset);
     }
     public static void helpBanner() {
         System.out.println(icons.help + effects.bold + "Mensaje de ayuda:");
-        System.out.println(colors.green + "\t ├─ " + colors.reset + "El programa esta pensado para leer dos archivos llamados \"pronosticos.csv\" y \"resultados.csv\".");
-        System.out.println(colors.green + "\t ├─ " + colors.reset + "Dichos archivos tienen que ser especificados como parametros");
-        System.out.println(colors.green + "\t ├─ " + colors.reset + "al momento de ejecutar el programa desde la consola de comandos.\"");
-        System.out.println(colors.green + "\t ├─ " + colors.reset + "La sintaxis es la siguiente, primero la ruta del archivo de los pronosticos dados por los participantes, luego");
-        System.out.println(colors.green + "\t ├─ " + colors.reset + "la ruta del archivo donde estan escritos los resultados de los partidos:");
-        System.out.println(colors.green + "\t ├─ " + "java .\\Main.java <rutaDelArchivoPronosticosCSV> <rutaDelArchivoResultadosCSV>" + colors.reset);
-        System.out.println(colors.green + "\t ├─ " + colors.reset + "Una vez especificadas las rutas a los archivos necesarios el programa puede interpretar su contenido");
-        System.out.println(colors.green + "\t ├─ " + colors.reset + "y opcionalmente volcando en un archivo \"puntuaciones.csv\" los participantes y sus respectivas puntuaciones, asi");
-        System.out.println(colors.green + "\t └─ " + colors.reset + "como tambien el ganador con los mejores pronosticos para los partidos dados.");
+        System.out.println(colors.green + "\t ├─ " + colors.reset + "El programa esta pensado para analizar un archivo \"" + colors.green + "resultados.csv" + colors.reset + "\".");
+        System.out.println(colors.green + "\t ├─ " + colors.reset + "Ese archivo se va a utilizar para interpretar que partidos y sus respectivos equipos jugaron, ");
+        System.out.println(colors.green + "\t ├─ " + colors.reset + "mientras que \"" + colors.green + "pronosticos.csv" + colors.reset + "\" se va a utilizar para interpretar que pronosticos hicieron los participantes. ");
+        System.out.println(colors.green + "\t ├─ " + colors.reset + "El uso es el siguiente, notese que el parametro " + colors.purple + effects.bold + "-p" + colors.reset + " es opcional unicamente cuando");
+        System.out.println(colors.green + "\t ├─ " + colors.purple + effects.bold + "-d = remota " + colors.reset + "dado que si no se especifica un archivo CSV se intenta buscar los pronosticos en una ");
+        System.out.println(colors.green + "\t ├─ " + colors.reset + "base de datos el link de acceso y las credenciales tomadas del archivo de configuracion especificado. Entonces los parametros son los siguientes: ");
+        System.out.println(colors.green + "\t │ " + colors.reset);
+        System.out.println(colors.green + "\t ├─ " + colors.purple + effects.italic + "pronosticosDeportivos -d <local | remota> -r <rutaDelArchivoResultadosCSV> -c <rutaDelArchivoConfigCSV> [Opcional] -p <rutaDelArchivoPronosticosCSV> -h" + colors.reset);
+        System.out.println(colors.green + "\t ├─ " + colors.purple + String.format("%1$-50s", "-p, pronosticos <rutaDelArchivoPronosticosCSV> ") + colors.reset + "\t■ Ruta del archivo donde se encuentran los pronosticos hechos por los participantes.");
+        System.out.println(colors.green + "\t ├─ " + colors.purple + String.format("%1$-50s", "-r, resultados <rutaDelArchivoResultadosCSV> ") + colors.reset + "\t■ Ruta del archivo donde se encuentran los resultados de los partidos.");
+        System.out.println(colors.green + "\t ├─ " + colors.purple + String.format("%1$-50s", "-d, database <local | remota> ") + colors.reset + "\t■ Ruta donde se va a almacenar la tabla de puntuaciones que produce este programa como salida.");
+        System.out.println(colors.green + "\t ├─ " + colors.purple + String.format("%1$-50s", "-c, config <rutaDelArchivoConfigCSV> ") + colors.reset + "\t■ Ruta del archivo donde se encuentra la configuracion necesaria para conectarse la DB o la carga de puntos a los participantes.");
+        System.out.println(colors.green + "\t ├─ " + colors.purple + String.format("%1$-50s", "-h, help ") + colors.reset + "\t■ Muestra este mensaje de ayuda.");
+        System.out.println(colors.green + "\t │ " + colors.reset);
+        System.out.println(colors.green + "\t ├─ " + colors.reset + "Una vez especificada la ruta al archivo de resultados, y una vez especificado de donde se dispone de los pronosticos,");
+        System.out.println(colors.green + "\t ├─ " + colors.reset + "el programa ya esta listo para operar, dando como resultado una salida de texto con");
+        System.out.println(colors.green + "\t └─ " + colors.reset + "una tabla de puntuaciones y el ganador.");
     }
-
     public static void informarError(File ArchivoCSV, int lineNumber, Exception e) {
         System.out.println(TextFormat.icons.error + "Lectura erronea del archivo: " + TextFormat.colors.red + ArchivoCSV.toPath().getFileName() + TextFormat.colors.reset);
         System.out.println(TextFormat.icons.error + "En el renglon: " + TextFormat.colors.red + (lineNumber + 1) + TextFormat.colors.reset);
         System.out.println(TextFormat.icons.error + "Excepcion: " + e.getMessage());
         System.out.println(TextFormat.icons.error + e.getMessage());
+    }
+    public static void informarError(Exception e){
+        System.out.println(TextFormat.icons.error + "Algo salio mal:"
+                + String.format("%1$-32s", "\n\t\tClase de excepcion: ") + "× " + TextFormat.colors.red + e.getClass() + TextFormat.colors.reset
+                + String.format("%1$-32s", "\n\t\tCausa de la excepcion: ") + "× " + TextFormat.colors.red + e.getCause() + TextFormat.colors.reset
+                + String.format("%1$-32s", "\n\t\tMensaje: ") + "× " + TextFormat.colors.red + e.getLocalizedMessage() + TextFormat.colors.reset);
     }
     public static void imprimirEquiposInstanciados(List<Equipo> equipos) {
         int iE = 0;
@@ -107,7 +121,7 @@ public abstract class TextFormat {
         do {
             System.out.println(TextFormat.colors.cyan + "│" + TextFormat.colors.reset + "\t\tPuesto (" + TextFormat.colors.cyan + (iP + 1) + TextFormat.colors.reset + "): "
                     + TextFormat.colors.green + String.format("%1$-48s", participantes.get(iP).getNombre()) + TextFormat.colors.reset
-                    + String.format("%-79s", " Identificacion univoca: " + TextFormat.colors.blue + participantes.get(iP).getIdentificacionUnivoca() + TextFormat.colors.reset
+                    + String.format("%-79s", " Numero de DNI/Pasaporte: " + TextFormat.colors.blue + participantes.get(iP).getIdentificacionUnivoca() + TextFormat.colors.reset
                     + " Puntos: (" + TextFormat.colors.purple + participantes.get(iP).getPuntosAcumulados() + TextFormat.colors.reset + ")") + TextFormat.colors.cyan + "│");
             iP++;
         } while (iP < participantes.size());
