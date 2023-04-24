@@ -28,14 +28,7 @@ public class MySqlConnector {
         System.out.println(TextFormat.colors.white + TextFormat.effects.bold + String.format("%1$-114s", "\n\t\t\t\t\t► ► ► CONEXION A MYSQL DB! ◄ ◄ ◄") + TextFormat.colors.reset);
         System.out.println(TextFormat.colors.cyan + String.format("%1$-128s", " ").replace(' ', '─') + TextFormat.colors.reset);
         System.out.println(TextFormat.icons.info + "MySQL Connector iniciando...");
-        // CREACION DE LA CONEXION PROPIAMENTE DICHA!
         Class.forName(JDBC_DRIVER);
-//        System.out.println(TextFormat.icons.info + host);
-//        System.out.println(TextFormat.icons.info + port);
-//        System.out.println(TextFormat.icons.info + db_name);
-//        System.out.println(TextFormat.icons.info + user);
-//        System.out.println(TextFormat.icons.info + pass);
-//        System.out.println(TextFormat.icons.info + db_url);
         Connection con = DriverManager.getConnection(db_url, user, pass);
         System.out.println(TextFormat.icons.info + "MySQL base de datos conectada...");
         Statement stmt = con.createStatement();

@@ -15,7 +15,7 @@ public class LectorDeArchivosCSV {
     private static List<Ronda> rondas = new ArrayList<>();
     private static final List<Participante> participantes = new ArrayList<>();
     private static List<Pronostico> pronosticos = new ArrayList<>();
-    private static List<File> files = new ArrayList<>();
+    private static final List<File> files = new ArrayList<>();
     private static String host;
     private static String port;
     private static String dbName;
@@ -24,8 +24,11 @@ public class LectorDeArchivosCSV {
     private static int puntuacionPorPartido;
     private static int puntuacionPorRonda;
     private static int puntuacionPorFase;
-    public LectorDeArchivosCSV(File ... f){
-        files = Arrays.asList(f);
+    public LectorDeArchivosCSV(File ... files){
+        for (File f: files){
+            if (f != null) this.files.add(f);
+        }
+        // this.files = Arrays.asList(files);
     }
     public static void ejecutar() throws Exception {
         for (File f: files) {
@@ -53,9 +56,9 @@ public class LectorDeArchivosCSV {
                     case "puntuacionPorPartido" -> setPuntuacionPorPartido(line[1]);
                     case "puntuacionPorRonda" -> setPuntuacionPorRonda(line[1]);
                     case "puntuacionPorFase" -> setPuntuacionPorFase(line[1]);
-                    default -> throw new Exception("El archivo de configuracion tiene informacion invalida.");
+                    default -> throw new Exception("El archivo de configuracion contiene informacion invalida.");
                 }
-                System.out.println(TextFormat.icons.info + String.format("%1$-32s", line[0] + ":") + TextFormat.colors.cyan  + line[1] + TextFormat.colors.reset);
+                // System.out.println(TextFormat.icons.info + String.format("%1$-32s", line[0] + ":") + TextFormat.colors.cyan  + line[1] + TextFormat.colors.reset);
             }
         } catch (Exception e) {
             TextFormat.informarError(e);

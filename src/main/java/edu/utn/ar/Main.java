@@ -29,6 +29,9 @@ public class Main {
     private static File pronosticosArchivoCSV;
     private static File resultadosArchivoCSV;
     private static File configArchivoCSV;
+    private static int puntuacionPorPartido;
+    private static int puntuacionPorRonda;
+    private static int puntuacionPorFase;
     private static List<Equipo> equipos = new ArrayList<>();
     private static List<Partido> partidos = new ArrayList<>();
     // VOY TRACKEANDO LAS RONDAS DE PARTIDOS QUE SE VAN JUGANDO PARA POSTERIORMENTE USAR ESTE DATO PARA ARMAR EL OBJETO RONDAS
@@ -51,6 +54,9 @@ public class Main {
             validacionDeRutasPasadasPorParametro(parametrosPasados);
             lector = new LectorDeArchivosCSV(resultadosArchivoCSV, pronosticosArchivoCSV, configArchivoCSV);
             lector.ejecutar();
+            puntuacionPorPartido = lector.getPuntuacionPorPartido();
+            puntuacionPorRonda = lector.getPuntuacionPorRonda();
+            puntuacionPorFase = lector.getPuntuacionPorFase();
             if (parametrosPasados.getOptionValue("d").equals("local")) {  // SI EL USUARIO DISPONE DE UN ARCHIVO CSV SE USA ESTE MISMO.
                 System.out.println(TextFormat.icons.info + "Cargando listas localmente ...");
                 cargarListasLocalmente(lector);
@@ -60,7 +66,7 @@ public class Main {
                 if (pronosticos != null & participantes != null) System.out.println(TextFormat.icons.success + "Se ha cargado con exito la lista de pronosticos.");
             }
             if (parametrosPasados.getOptionValue("d").equals("remota")){  // SI EL USUARIO DISPONE DE UNA BASE DE DATOS SE INTENTA ACCEDER, ESTO VA A IGNORAR EL ARCHIVO DE PRONOSTICOS SI SE ESPECIFICA!
-                if (!parametrosPasados.getOptionValue("p").equals("")){ // SI EL USUARIO ESPECIFICA UN ARCHIVO CSV PERO EL PARAMETRO -D = REMOTA ENTONCES SE ADVIERTE EL PASO POR ALTO DEL ARCHIVO CSV!
+                if (parametrosPasados.getOptionValue("p") != null){ // SI EL USUARIO ESPECIFICA UN ARCHIVO CSV PERO EL PARAMETRO -D = REMOTA ENTONCES SE ADVIERTE EL PASO POR ALTO DEL ARCHIVO CSV!
                     System.out.println(TextFormat.icons.warning + "Advertencia, el parametro \"" + TextFormat.colors.yellow + "-p <rutaDeArchivoPronosticosCSV>" + TextFormat.colors.reset + "\" ha sido ignorado porque se dispone una base de datos.");
                     System.out.println(TextFormat.icons.warning + "Se va a hacer uso del archivo en caso de que el programa no pueda conectarse a la base de datos.");
                 }
@@ -73,7 +79,7 @@ public class Main {
                 } catch (ClassNotFoundException cnfe){ // SI LANZA EXCEPCION ENTONCES INTENTO CARGAR LA LISTA DE PRONOSTICOS CON EL ARCHIVO CSV DADO PARA LOS PRONOSTICOS!
                     TextFormat.informarError(cnfe);
                     System.out.println(TextFormat.icons.error + "No se va a usar la base de datos.");
-                    if (parametroArchivoPronosticos != null){
+                    if (pronosticosArchivoCSV != null){
                         System.out.println(TextFormat.icons.info + "Se detecto un archivo dado para los pronosticos.");
                         pronosticos = lector.getPronosticos();
                         if (pronosticos != null) System.out.println(TextFormat.icons.success + "Se ha cargado con exito la lista de pronosticos.");
@@ -83,7 +89,7 @@ public class Main {
                 System.out.println(TextFormat.icons.info + "Tamaño de la lista de pronosticos: " + TextFormat.colors.blue + pronosticos.size() + TextFormat.colors.reset);
             }
             participantes = cargarPuntosSegunLosPronosticosAcertados();
-            Collections.sort(participantes, (p1, p2) -> Float.compare(p2.getPuntosAcumulados(), p1.getPuntosAcumulados()));
+            Collections.sort(participantes, (p1, p2) -> Integer.compare(p2.getPuntosAcumulados(), p1.getPuntosAcumulados()));
             TextFormat.imprimirTablaDePuntuaciones(participantes);
             if (pronosticos == null) { throw new Exception("Algo salio mal durante la carga de la correspondiente a los pronosticos."); }
         // FIN DEL METODO MAIN
@@ -93,7 +99,6 @@ public class Main {
             return;
         }
     }
-    //  METODO USADO PARA CONSTRUIR EL OBJETO OPTIONS Y CREAR LOS PARAMETROS QUE EL PROGRAMA TIENE DISPONIBLE!
     private static Options construccionDeParametros(Options options) {
         // CONJUNTO DE PARAMETROS OBLIGATORIOS!
         Option archivoDeEntradaResultados = new Option("r", "resultados", true, ""); // PARAMETRO PARA ESPECIFICAR LA RUTA DEL ARCHIVO RESULTADOS!
@@ -115,24 +120,30 @@ public class Main {
         // RETORNO EL OBJETO MODIFICADO!
         return options;
     }
-    // CARGADO DE LAS LISTAS equipos, partidos y rondas LOCALMENTE!
-
     private static void validacionDeRutasPasadasPorParametro(CommandLine parametrosPasados) throws Exception {
-        parametroArchivoResultados = (parametrosPasados.hasOption("r")) ? parametrosPasados.getOptionValue("r") : null;
-        parametroArchivoConfig = (parametrosPasados.hasOption("c")) ? parametrosPasados.getOptionValue("c") : null;
-        parametroArchivoPronosticos = (parametrosPasados.hasOption("p")) ? parametrosPasados.getOptionValue("p") : null;
-        rutaDeArchivoResultados = (parametroArchivoResultados != null) ? Paths.get(parametroArchivoResultados).toAbsolutePath() : null;
-        rutaDeArchivoConfig = (parametroArchivoConfig != null) ? Paths.get(parametroArchivoConfig).toAbsolutePath() : null;
-        rutaDeArchivoPronosticos = (parametroArchivoPronosticos != null) ? Paths.get(parametroArchivoPronosticos).toAbsolutePath() : null;
-        if (ValidacionDeDatos.rutaEspecificadaEsDirectorio(true, rutaDeArchivoResultados, rutaDeArchivoConfig, rutaDeArchivoPronosticos)){
+        parametroArchivoResultados = parametrosPasados.getOptionValue("r");
+        rutaDeArchivoResultados = Path.of(parametrosPasados.getOptionValue("r"));
+        parametroArchivoConfig = parametrosPasados.getOptionValue("c");
+        rutaDeArchivoConfig = Path.of(parametrosPasados.getOptionValue("c"));
+        if (parametrosPasados.getOptionValue("p") != null) {
+            parametroArchivoPronosticos = parametrosPasados.getOptionValue("p");
+            rutaDeArchivoPronosticos = Path.of(parametroArchivoPronosticos);
+            if (ValidacionDeDatos.rutaEspecificadaEsDirectorio(rutaDeArchivoPronosticos)){
+                throw new Exception("Los parametros mencionados son directorios y no archivos.");
+            }
+            if (ValidacionDeDatos.losArchivosNoExisten(rutaDeArchivoPronosticos)){
+                throw new Exception("Los archivos mencionados no existen.");
+            }
+        }
+        if (ValidacionDeDatos.rutaEspecificadaEsDirectorio(true, rutaDeArchivoResultados, rutaDeArchivoConfig)){
             throw new Exception("Los parametros mencionados son directorios y no archivos.");
         }
-        if (ValidacionDeDatos.losArchivosNoExisten(true, rutaDeArchivoResultados, rutaDeArchivoConfig, rutaDeArchivoPronosticos)) {
+        if (ValidacionDeDatos.losArchivosNoExisten(true, rutaDeArchivoResultados, rutaDeArchivoConfig)) {
             throw new Exception("Los archivos mencionados no existen.");
         }
-        resultadosArchivoCSV = new File(rutaDeArchivoResultados.toUri());
-        configArchivoCSV = new File(rutaDeArchivoConfig.toUri());
-        pronosticosArchivoCSV = new File(rutaDeArchivoPronosticos.toUri());
+        resultadosArchivoCSV = (rutaDeArchivoResultados != null) ? new File(rutaDeArchivoResultados.toUri()) : null;
+        configArchivoCSV = (rutaDeArchivoConfig != null) ? new File(rutaDeArchivoConfig.toUri()) : null;
+        pronosticosArchivoCSV = (rutaDeArchivoPronosticos != null) ? new File(rutaDeArchivoPronosticos.toUri()) : null;
     }
     private static void cargarListasLocalmente(LectorDeArchivosCSV lector) throws Exception {
         try {
@@ -152,7 +163,6 @@ public class Main {
             TextFormat.informarError(e);
         }
     }
-    // METODO USADO PARA CARGAR LA LISTA DE PRONOSTICOS Y PARTICIPANTES USANDO UNA BASE DE DATOS!
     private static void instanciarPronosticos() throws ClassNotFoundException, SQLException {
         // AHORA TENGO QUE CREAR UNA INSTANCIA DE MYSQLCONNECTOR!
         MySqlConnector jdbcInstancia = new MySqlConnector(equipos, partidos, participantes, pronosticos);
@@ -174,7 +184,6 @@ public class Main {
             TextFormat.informarError(e);
         }
     }
-    // CARGO LOS PUNTOS CORRESPONDIENTES A CADA PARTICIPANTE ITERANDO SOBRE LA LISTA DE PRONOSTICOS Y EVALUANDO SI EXISTE EL PARTIDO AL CUAL SE REFIEREN!
     private static List<Participante> cargarPuntosSegunLosPronosticosAcertados() {
         int iterador = 0;
         System.out.println(TextFormat.colors.white + TextFormat.effects.bold + String.format("%1$-114s", "\n\t\t\t\t\t► ► ► PRONOSTICOS DE LOS PARTICIPANTES! ◄ ◄ ◄") + TextFormat.colors.reset);
@@ -188,7 +197,7 @@ public class Main {
             boolean condicionDeCarga = (pronosticoBuffer.getPronosticoEquipoLocal() == pBuffer.getResultadoEquipoLocal()) && (pronosticoBuffer.getPronosticoEquipoVisitante() == pBuffer.getResultadoEquipoVisitante());
             if (condicionDeCarga){
                 String nombreParticipanteBuffer = pronosticos.get(iterador).getObjParticipante().getNombre();
-                participantes.stream().filter(p -> p.getNombre().equals(nombreParticipanteBuffer)).findFirst().get().adicionarPuntos(1.0f);
+                participantes.stream().filter(p -> p.getNombre().equals(nombreParticipanteBuffer)).findFirst().get().adicionarPuntos(puntuacionPorPartido);
             }
             // IMPRIMO EL PRONOSTICO EN CUESTION:
             TextFormat.imprimirPronosticoDelParticipante(pronosticos, iterador, condicionDeCarga);
